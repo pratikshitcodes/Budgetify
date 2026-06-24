@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Expense Tracker - Login</title>
+    <link rel="stylesheet" href="./expense_login.css" />
+  </head>
+  <body>
+<div class="login-page">
+      <div class="login-orbit" aria-hidden="true">
+        <div class="rocket-orbit">
+          <div class="rocket">
+            <div class="rocket-window"></div>
+            <div class="rocket-fin rocket-fin--left"></div>
+            <div class="rocket-fin rocket-fin--right"></div>
+            <div class="rocket-flame"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="login-card" role="region" aria-label="Login">
+        <div class="login-header">
+          <img
+            class="login-logo"
+            src="./Ionic-Ionicons-Options.512.png"
+            alt="Finance Analyst"
+          />
+          <h1>Finance Analyst With AI</h1>
+          <p class="subtitle">Login to access your expense dashboard</p>
+        </div>
+
+        <form id="loginForm" class="login-form">
+          <label for="email" class="field-label">Email or Username</label>
+          <input
+            id="email"
+            name="email"
+            type="text"
+            autocomplete="username"
+            placeholder="Enter email or username"
+            required
+          />
+
+          <label for="password" class="field-label">Password</label>
+          <div class="password-row">
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autocomplete="current-password"
+              placeholder="Enter password"
+              required
+            />
+            <label class="show-pass">
+              <input id="showPassword" type="checkbox" />
+              <span>Show</span>
+            </label>
+          </div>
+
+          <button type="submit" class="login-btn">Sign In</button>
+
+          <div id="loginError" class="login-error" aria-live="polite" style="display:none"></div>
+        </form>
+      </div>
+    </div>
+
+    <script src="./expense_login.js"></script>
+  </body>
+</html>
+

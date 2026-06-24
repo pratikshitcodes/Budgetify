@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>
+            Expense Tracker
+        </title>
+        <link rel="stylesheet" href="./expense_tracker.css">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    </head>
+    <body>
+        <div class="nav-bar">
+            <div class="start-header"><img src="./Ionic-Ionicons-Options.512.png"></div>
+            <div class="mid-header"><p>Finance Analyst With AI</p></div>
+            <div class="last-header">
+                <button class="balance-btn">
+                    Balance:10000
+                </button>
+            </div>
+        </div>
+        <div class="main-layout">
+            <div class="sidebar">
+                <button class="sidebar-btn">
+                        <img src="./home.png">
+                        <span>Home</span>
+                </button>
+                <button class="sidebar-btn">
+                    <img src="./data-analytics.png">
+                    <span>Analytics</span>
+                </button>
+                <button class="sidebar-btn">
+                    <img src="./icons8-monthly-64 (1).png">
+                    <span>Monthly Status</span>
+                </button>
+                <button class="sidebar-btn">
+                    <img src="./icons8-settings-50.png">
+                    <span>Settings</span>
+                </button>
+                <button class="log-out-btn">
+                    LOG OUT
+                </button>
+            </div>
+            <div class="content">
+                <div class="dashboard">
+                    <div class="total-spent">
+                        <span>Total Spent</span>
+                        <p>$ 10,000</p>
+                    </div>
+                    <div class="remaining-amount">
+                        <span>Remaining Amount</span>
+                        <p>$ 20,000</p>
+                    </div>
+                    <div class="status">
+                        <span>Danger/Safe Zone</span>
+                        <p>Danger</p>
+                    </div>
+                </div>
+                <div class="filter-section">
+                    <input 
+                        id="searchInput"
+                        class="search-bar"
+                        type="text"
+                        placeholder="Search expenses, categories..."
+                    >
+                    <button class="addBtn">
+                        + Add Expenses
+                    </button>
+                </div>
+                <section class="expense-table-section">
+                    <h2>Records</h2>
+                    <table class="entries">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Category</th>
+                                <th>Amount</th>
+                                <th>Date</th>
+                                <th>More</th>
+                            </tr>
+                        </thead>
+                        <tbody id="expenseTableBody">
+                            
+                        </tbody>
+                    </table>
+                </section>
+            </div>
+        </div>
+        <!-- ADD expense model goes here-->
+         <div class="modal-overlay" id="expenseModal">
+            <div class="expense-modal">
+                <button class="close-modal-btn" id="closeExpenseModal">&times;</button>
+                <h2 class="form-heading">
+                    Add Expense
+                </h2>
+                <form id="addExpenseForm">
+                    <input id="expenseTitle" type="text" placeholder="Title" required>
+                    <input id="expenseAmount" type="text" placeholder="Amount" required>
+                    <select id="expenseCategory" required>
+                        <option value="">Select Category</option>
+                        <option value="Food">
+                            Food
+                        </option>
+
+                        <option value="Intenet-Bills">
+                            Intenet-Bills
+                        </option>
+                        <option value="Groceries">
+                            Groceries
+                        </option>
+                        <option value="Electricity-Bills">
+                            Electricity-Bills
+                        </option>
+                        <option value="Enterntainment">
+                            Enterntainment
+                        </option>
+                        <option value="Health">
+                            Health
+                        </option>
+                        <option value="Education">
+                            Education
+                        </option>
+                        <option value="Travels">
+                            Travels
+                        </option>
+                    </select>
+                    <textarea id="expenseDescription"         placeholder="Description">
+                    </textarea>
+                </form>
+                <button type="submit" class="submit-expense-btn">
+                    Add Expense
+                </button>
+            </div>
+         </div>
+    </body>
+</html>
+<script src="./expense_tracker.js"></script>
