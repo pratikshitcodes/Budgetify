@@ -9,7 +9,7 @@ app=FastAPI()
 @app.get("/")
 def check():
     return {"message":"API IS RUNNING!!!"}
-models.Base.metadata.create_all(bind=engine)
+
 app.include_router(users.router)
 app.include_router(expenses.expense_router)
 app.include_router(expenses.budget_router)
