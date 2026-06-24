@@ -10,6 +10,8 @@ load_dotenv()
 # and adds it to environment variables.
 # os.getenv("DATABASE_URL") then reads that value.
 DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise RuntimeError("Database Connection Failed")
 #creating the connection with DATABASE
 engine=create_engine(DATABASE_URL)
 
