@@ -31,9 +31,9 @@ def get_expenses(db:DbSession,
     return expenses
 
 @expense_router.post('/',status_code=status.HTTP_201_CREATED)
-def post_expense(post_details:schemas.ExpenseCreate,
-                db:DbSession,
-                current_user:CurrentUser):
+def post_expense(post_details:schemas.ExpenseCreate,db:DbSession, current_user:CurrentUser):
+    if post_details.amount<=0:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="Please Enter a valid amount")
     new_item=models.Expense(title=post_details.title,amount=post_details.amount,description=post_details.description,owner_id=current_user.id,category=post_details.category)
     db.add(new_item)
     db.commit()
@@ -45,7 +45,7 @@ def delete_expense(id:int,db:DbSession,
     expense_query=db.query(models.Expense).filter(models.Expense.id==id,models.Expense.owner_id==current_user.id)
     expense=expense_query.first()
     if expense is None:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail=f"Expense not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"Expense not found")
     
     expense_query.delete(synchronize_session=False)
     db.commit()
@@ -60,9 +60,10 @@ def update(id:int,
     expense=expense_query.first()
     if expense is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"No such Results found!!!")
-    expense_query.update(updated_details.dict(),synchronize_session=False)
+    expense_query.update(updated_details.model_dump(),synchronize_session=False)
     db.commit()
     return expense_query.first()
+
 @budget_router.get('/')
 def get_monthly_expense(
         db:DbSession,
@@ -89,10 +90,12 @@ def analyse_budget(budget_details:schemas.Budget_Create,
     
 
     is_budget_exist=db.query(models.Budget).filter(models.Budget.user_id==current_user.id,
-                                                   models.Budget.month==month,
-                                                   models.Budget.year==year).first()
+     models.Budget.month==month,
+     models.Budget.year==year).first()
     
-
+    if amount<=0:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail=f"Budget Cant be 0")
+    
     if is_budget_exist is None:
         new_budget=models.Budget(amount=amount,month=month,year=year,user_id=current_user.id)
         db.add(new_budget)
@@ -102,8 +105,7 @@ def analyse_budget(budget_details:schemas.Budget_Create,
 
     """Calculation Of Monthly Expenses"""
     total_expenses=calculate_expense(db,month,year,current_user.id)
-    if amount==0:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail=f"Budget Cant be 0")
+    
     used_percentage=total_expenses/amount
     remaining=amount-total_expenses
     budget_status=""
@@ -118,7 +120,7 @@ def analyse_budget(budget_details:schemas.Budget_Create,
 
     previous_month_spent=0
     if month==1:
-        previous_month_spent=calculate_expense(db,12,year+1,current_user.id)
+        previous_month_spent=calculate_expense(db,12,year-1,current_user.id)
     else:
         previous_month_spent=calculate_expense(db,month-1,year,current_user.id)
     if previous_month_spent==0:

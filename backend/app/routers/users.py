@@ -13,11 +13,19 @@ router=APIRouter(
 #Before calling this route, run get_db() and give me the yielded database session.
 @router.post("/",status_code=status.HTTP_201_CREATED,response_model=UserResponse)
 def register(user_details:UserCreate,db:Session=Depends(get_db)):
+    
+    existing=db.query(models.User).filter(models.User.email==user_details.email).first()
+
+    if existing:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT,detail="Email Already Exists !!!")
+
     user_password=user_details.password
     hashed_password=utils.hash(user_password)
     user_details.password=hashed_password
 
-    new_user=models.User(**user_details.dict())
+    #same as .dict() but in v2 we use model_dump
+    new_user=models.User(**user_details.model_dump())
+
 
     db.add(new_user)
     db.commit()
