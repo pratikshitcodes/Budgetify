@@ -32,8 +32,6 @@ def get_expenses(db:DbSession,
 
 @expense_router.post('/',status_code=status.HTTP_201_CREATED)
 def post_expense(post_details:schemas.ExpenseCreate,db:DbSession, current_user:CurrentUser):
-    if post_details.amount<=0:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="Please Enter a valid amount")
     new_item=models.Expense(title=post_details.title,amount=post_details.amount,description=post_details.description,owner_id=current_user.id,category=post_details.category)
     db.add(new_item)
     db.commit()
@@ -93,8 +91,6 @@ def analyse_budget(budget_details:schemas.Budget_Create,
      models.Budget.month==month,
      models.Budget.year==year).first()
     
-    if amount<=0:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail=f"Budget Cant be 0")
     
     if is_budget_exist is None:
         new_budget=models.Budget(amount=amount,month=month,year=year,user_id=current_user.id)

@@ -1,4 +1,4 @@
-from pydantic import BaseModel,ConfigDict
+from pydantic import BaseModel,ConfigDict,validator
 from typing import Optional
 from datetime import datetime
 
@@ -19,6 +19,22 @@ class ExpenseCreate(BaseModel):
     amount:float
     description:str
     category:str
+    
+    # Decorator — tells Pydantic "run this function 
+    # when 'amount' field is received"
+    
+    # 'amount' → field name it watches
+    @validator('amount')
+    def amount_positive(cls,v):
+        if v<=0:
+            raise ValueError('Amount must be positive')
+        return v
+    
+    @validator('title')
+    def title_not_empty(cls,v):
+        if not v.strip():
+            raise ValueError('Title cannot be blank')
+        return v
 
 class ExpenseResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -46,6 +62,12 @@ class Budget_Create(BaseModel):
     amount:float
     month:int
     year:int
+
+    @validator('amount')
+    def amount_psoitive(cls,v):
+        if v<=0:
+            raise ValueError('Budget must be positive')
+        return v
 
 class Budget_Response(BaseModel):
     model_config = ConfigDict(from_attributes=True)
