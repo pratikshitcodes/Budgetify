@@ -12,9 +12,7 @@ body{
   justify-content: center;
   padding: 24px;
   background:linear-gradient(135deg,
-  #9e79d8 0%,
-  #d0bdf4 50%,
-  #8458B3 100%);
+  #004bad,#5DA9E9);
 }
 
 .login-card{

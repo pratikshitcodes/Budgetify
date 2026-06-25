@@ -1,9 +1,14 @@
 
 const loginForm =document.querySelector("#loginForm");
+
 const emailInput=document.querySelector("#email");
 const passwordInput=document.querySelector("#password");
+
 const loginError= document.querySelector("#loginError");
 
+const showPasswordBtn=document.querySelector("#showPassword");
+
+const showText=document.querySelector(".show-class span");
 loginForm.addEventListener("submit", async (event) => {
   //submit button click
   //-> page reloads
@@ -44,3 +49,10 @@ loginForm.addEventListener("submit", async (event) => {
 
   window.location.href = "./expense_tracker.html";
 });
+
+showPasswordBtn.addEventListener("change",()=>{
+  const isChecked= showPasswordBtn.checked;
+
+  passwordInput.type=isChecked?"text":"password";
+  showText.textContent=isChecked?"Hide":"Show";
+})
