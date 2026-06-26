@@ -5,11 +5,7 @@ if (!token) {
 }
 
 async function loadExpenses(){
-    const response=await fetch("http://127.0.0.1:8000/expenses/",{
-        headers:{
-            Authorization:`Bearer ${token}`,
-        },
-    });
+    const response=await apiFetch("/expenses/");
     const expenseTableBody=document.querySelector("#expenseTableBody");
 
     const expenses=await response.json();
