@@ -247,11 +247,23 @@ body{
     border-radius: 10px;
     border-style: solid;
     padding:4px 8px;
+    font-family: "Poppins",sans-serif;
     border-color: rgb(183, 183, 183);
     cursor: pointer;
 }
 .view-btn:hover{
     color:rgb(35, 169, 217);
+}
+.delete-btn{
+    border-radius: 10px;
+    border-style: solid;
+    padding:4px 8px;
+    border-color: rgb(183, 183, 183);
+    cursor: pointer;
+    font-family: "Poppins",sans-serif;
+}
+.delete-btn:hover{
+    color:rgb(227, 0, 0);
 }
 .expense-table-section tbody tr:nth-of-type(even){
     background-color: rgb(232, 232, 232);
@@ -279,9 +291,12 @@ body{
     background-color: #ffffff;
     min-height: 40vh;
     position: relative;
-    left:30%;
+    margin: auto;
     padding: 8px 8px 8px 8px;
     border-radius: 16px;
+    overflow-y: auto;
+    width: 480px;
+    max-height: 90vh;
 }
 .close-modal-btn{
     align-self: flex-start;
@@ -293,19 +308,27 @@ body{
 }
 #addExpenseForm{
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     flex-wrap: nowrap;
-    gap: 12px;
+    gap: 16px;
 }
 #addExpenseForm input,#addExpenseForm select,#addExpenseForm textarea{
+    align-self: flex-start;
+    padding: 10px;
+    font-size: 14px;
+    width: 400px;
     border-radius: 4px;
     border: 2px solid black;
-    padding-left:4px;
-    padding-bottom: 0px;
-    padding-top: 0px;
     font-family: "Poppins",sans-serif;
-    font-size: 14px;
+    color:rgb(54, 54, 54);
 }
 .submit-expense-btn{
     align-self: flex-start;
+    border-radius: 20px;
+    border-style: solid;
+    font-family: "Poppins",sans-serif;
+    font-size: 14px;
+    padding: 4px 0px 4px 0px;
+    width:480px;
+    margin-top: 20px;
 }

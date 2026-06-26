@@ -5,8 +5,9 @@ if (!token) {
 }
 
 async function loadExpenses(){
-    const response=await apiFetch("/expenses/");
     const expenseTableBody=document.querySelector("#expenseTableBody");
+    expenseTableBody.innerHTML="";
+    const response=await apiFetch("/expenses/");
 
     const expenses=await response.json();
     expenses.forEach(expense => {
@@ -35,13 +36,32 @@ async function loadExpenses(){
         viewBtn.innerText="View";
         viewBtn.classList.add("view-btn")
 
-        td_more.appendChild(viewBtn)
+        const deleteBtn=document.createElement("button")
+        deleteBtn.innerText="Delete";
+        deleteBtn.classList.add("delete-btn");
+
+        deleteBtn.addEventListener("click",async(e)=>{
+            e.preventDefault();
+            try{
+                const response=await apiFetch("/expenses"+`/${expense.id}`,{
+                    method:"DELETE",
+                });
+    
+                expenseTableBody.innerHTML="";
+                loadExpenses();
+            }
+            catch(error){
+                console.log("Delete failed:",error);
+            }
+        })
+
+        td_more.appendChild(viewBtn);
+        td_more.appendChild(deleteBtn);
         tr.appendChild(td_title);
         tr.appendChild(td_category);
         tr.appendChild(td_amount);
         tr.appendChild(td_date);
         tr.appendChild(td_more)
-
         expenseTableBody.appendChild(tr);
     });
 }
@@ -50,9 +70,10 @@ loadExpenses();
 
 
 const searchInput=document.getElementById("searchInput");
-const rows=document.querySelectorAll("tbody tr");
+
 if(searchInput){
     searchInput.addEventListener("input",function(){
+        const rows=document.querySelectorAll("tbody tr");
         const searchValue=searchInput.value.toLowerCase();
 
         rows.forEach(function(row){
@@ -79,3 +100,34 @@ function removeForm(){
 }
 closeBtn.addEventListener("click",removeForm);
 addExpenseBtn.addEventListener("click",openForm);
+
+const addexpenseForm=document.querySelector("#addExpenseForm");
+const expense_title=document.querySelector("#expenseTitle");
+const expense_amount=document.querySelector("#expenseAmount");
+const expense_category=document.querySelector("#expenseCategory");
+const expense_desc=document.querySelector("#expenseDescription");
+addexpenseForm.addEventListener("submit",async (e)=>{
+    e.preventDefault();
+    const title=expense_title.value;
+    const amount=parseFloat(expense_amount.value);
+    const category=expense_category.value;
+    const description=expense_desc.value;
+    if(!title || !amount || !category){
+        alert("Please fill all fields")
+        return
+    }
+    try{
+        const response=await apiFetch("/expenses",{
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({title,amount,description,category})
+        });
+        const data=await response.json();
+        expenseTableBody="";
+        loadExpenses();
+    }
+    catch(error){
+        console.log("error:",error);
+    }
+    removeForm();
+});
