@@ -1,137 +1,174 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>
-            Expense Tracker
-        </title>
-        <link rel="stylesheet" href="./expense_tracker.css">
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
-    </head>
-    <body>
-        <div class="nav-bar">
-            <div class="start-header"><img src="./Ionic-Ionicons-Options.512.png"></div>
-            <div class="mid-header"><p>Finance Analyst With AI</p></div>
-            <div class="last-header">
-                <button class="balance-btn">
-                    Balance:10000
+<head>
+    <title>Budgetify</title>
+    <link rel="stylesheet" href="./expense_tracker.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="shell">
+
+        <!-- ── Sidebar ── -->
+        <div class="sidebar">
+            <div class="logo">
+                <div class="logo-mark"><i class="ti ti-currency-rupee"></i></div>
+                <span class="logo-text">Budgetify</span>
+            </div>
+
+            <span class="nav-label">Menu</span>
+            <button class="sidebar-btn active">
+                <i class="ti ti-layout-dashboard"></i>
+                <span>Dashboard</span>
+            </button>
+            <button class="sidebar-btn">
+                <i class="ti ti-chart-pie"></i>
+                <span>Analytics</span>
+            </button>
+            <button class="sidebar-btn">
+                <i class="ti ti-calendar-stats"></i>
+                <span>Monthly</span>
+            </button>
+            <button class="sidebar-btn">
+                <i class="ti ti-receipt"></i>
+                <span>Records</span>
+            </button>
+
+            <span class="nav-label">Account</span>
+            <button class="sidebar-btn">
+                <i class="ti ti-settings"></i>
+                <span>Settings</span>
+            </button>
+
+            <div class="user-section">
+                <div class="user-avatar">U</div>
+                <div class="user-info">
+                    <div class="user-name">My Account</div>
+                    <div class="user-email">budgetify</div>
+                </div>
+                <button class="log-out-btn" title="Logout">
+                    <i class="ti ti-logout"></i>
                 </button>
             </div>
         </div>
-        <div class="main-layout">
-            <div class="sidebar">
-                <button class="sidebar-btn">
-                        <img src="./home.png">
-                        <span>Home</span>
-                </button>
-                <button class="sidebar-btn">
-                    <img src="./data-analytics.png">
-                    <span>Analytics</span>
-                </button>
-                <button class="sidebar-btn">
-                    <img src="./icons8-monthly-64 (1).png">
-                    <span>Monthly Status</span>
-                </button>
-                <button class="sidebar-btn">
-                    <img src="./icons8-settings-50.png">
-                    <span>Settings</span>
-                </button>
-                <button class="log-out-btn">
-                    LOG OUT
-                </button>
-            </div>
-            <div class="content">
-                <div class="dashboard">
-                    <div class="total-spent">
-                        <span>Total Spent</span>
-                        <p>$ 10,000</p>
-                    </div>
-                    <div class="remaining-amount">
-                        <span>Remaining Amount</span>
-                        <p>$ 20,000</p>
-                    </div>
-                    <div class="status">
-                        <span>Danger/Safe Zone</span>
-                        <p>Danger</p>
+
+        <!-- ── Main ── -->
+        <div class="main">
+
+            <!-- Topbar -->
+            <div class="topbar">
+                <div class="topbar-left">
+                    <h1 id="greeting">Good evening 👋</h1>
+                    <p>Here's your spending summary for this month</p>
+                </div>
+                <div class="topbar-right">
+                    <div class="month-pill">
+                        <i class="ti ti-calendar"></i>
+                        <span id="currentMonth"></span>
                     </div>
                 </div>
-                <div class="filter-section">
-                    <input 
-                        id="searchInput"
-                        class="search-bar"
-                        type="text"
-                        placeholder="Search expenses, categories..."
-                    >
+            </div>
+
+            <!-- Content -->
+            <div class="content">
+
+                <!-- Dashboard Cards -->
+                <div class="dashboard">
+                    <div class="card card-spent">
+                        <div class="card-icon"><i class="ti ti-credit-card"></i></div>
+                        <div class="card-label">Total Spent</div>
+                        <div class="card-value total-spent-val">₹0</div>
+                        <div class="card-sub" id="spentSub">—</div>
+                        <div class="prog-track">
+                            <div class="prog-fill prog-purple" id="spentBar" style="width:0%"></div>
+                        </div>
+                    </div>
+                    <div class="card card-remaining">
+                        <div class="card-icon"><i class="ti ti-wallet"></i></div>
+                        <div class="card-label">Remaining</div>
+                        <div class="card-value remaining-val">₹0</div>
+                        <div class="card-sub" id="remainingSub">Set a budget to track</div>
+                        <div class="prog-track">
+                            <div class="prog-fill prog-green" id="remainingBar" style="width:100%"></div>
+                        </div>
+                    </div>
+                    <div class="card card-status">
+                        <div class="card-icon"><i class="ti ti-alert-triangle"></i></div>
+                        <div class="card-label">Budget Status</div>
+                        <div class="card-value status-val" id="budgetStatus">—</div>
+                        <div class="card-sub" id="statusSub">No budget set</div>
+                    </div>
+                </div>
+
+                <!-- Filter + Add -->
+                <div class="section-row">
+                    <span class="section-title">Recent Expenses</span>
                     <button class="addBtn">
-                        + Add Expenses
+                        <i class="ti ti-plus"></i> Add Expense
                     </button>
                 </div>
-                <section class="expense-table-section">
-                    <h2>Records</h2>
-                    <table class="entries">
+
+                <div class="search-wrap">
+                    <i class="ti ti-search"></i>
+                    <input
+                        id="searchInput"
+                        type="text"
+                        placeholder="Search expenses or categories…"
+                    >
+                </div>
+
+                <!-- Table -->
+                <div class="table-wrap">
+                    <table>
                         <thead>
                             <tr>
                                 <th>Title</th>
                                 <th>Category</th>
                                 <th>Amount</th>
                                 <th>Date</th>
-                                <th>More</th>
+                                <th></th>
                             </tr>
                         </thead>
-                        <tbody id="expenseTableBody">
-                            
-                        </tbody>
+                        <tbody id="expenseTableBody"></tbody>
                     </table>
-                </section>
+                </div>
+
             </div>
         </div>
-        <!-- ADD expense model goes here-->
-         <div class="modal-overlay" id="expenseModal">
-            <div class="expense-modal">
-                <button class="close-modal-btn" id="closeExpenseModal">&times;</button>
-                <h2 class="form-heading">
-                    Add Expense
-                </h2>
-                <form id="addExpenseForm">
-                    <input id="expenseTitle" type="text" placeholder="Title" required>
-                    <input id="expenseAmount" type="text" placeholder="Amount" required>
-                    <select id="expenseCategory" required>
-                        <option value="">Select Category</option>
-                        <option value="Food">
-                            Food
-                        </option>
+    </div>
 
-                        <option value="Intenet-Bills">
-                            Intenet-Bills
-                        </option>
-                        <option value="Groceries">
-                            Groceries
-                        </option>
-                        <option value="Electricity-Bills">
-                            Electricity-Bills
-                        </option>
-                        <option value="Enterntainment">
-                            Enterntainment
-                        </option>
-                        <option value="Health">
-                            Health
-                        </option>
-                        <option value="Education">
-                            Education
-                        </option>
-                        <option value="Travels">
-                            Travels
-                        </option>
-                    </select>
-                    <textarea id="expenseDescription" placeholder="Description"></textarea>
-                    <button type="submit" class="submit-expense-btn">
-                        Add Expense
-                    </button>
-                </form>
-            </div>
-         </div>
-    </body>
+    <!-- ── Add Expense Modal ── -->
+    <div class="modal-overlay" id="expenseModal">
+        <div class="expense-modal">
+            <button class="close-modal-btn" id="closeExpenseModal">
+                <i class="ti ti-x"></i>
+            </button>
+            <h2 class="form-heading">Add Expense</h2>
+            <form id="addExpenseForm">
+                <input id="expenseTitle" type="text" placeholder="Title" required>
+                <input id="expenseAmount" type="number" min="0.01" step="0.01" placeholder="Amount" required>
+                <select id="expenseCategory" required>
+                    <option value="">Select Category</option>
+                    <option value="Food">Food</option>
+                    <option value="Internet-Bills">Internet Bills</option>
+                    <option value="Groceries">Groceries</option>
+                    <option value="Electricity-Bills">Electricity Bills</option>
+                    <option value="Entertainment">Entertainment</option>
+                    <option value="Health">Health</option>
+                    <option value="Education">Education</option>
+                    <option value="Travel">Travel</option>
+                    <option value="Shopping">Shopping</option>
+                    <option value="Other">Other</option>
+                </select>
+                <textarea id="expenseDescription" placeholder="Description (optional)"></textarea>
+                <button type="submit" class="submit-expense-btn">Add Expense</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="./api.js"></script>
+    <script src="./expense_tracker.js"></script>
+</body>
 </html>
-<script src="/expense-tracker/frontend/api.js"></script>
-<script src="./expense_tracker.js"></script>

@@ -22,7 +22,6 @@ async function apiFetch(url,options={}) {
             window.location.href="./expense_login.html";
             return ;
         }
-
     }
     return response;
 }

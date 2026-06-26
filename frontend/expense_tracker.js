@@ -3,7 +3,12 @@ const token = localStorage.getItem("access_token");
 if (!token) {
   window.location.href = "./expense_login.html";
 }
+const hour = new Date().getHours()
+const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening"
+document.getElementById("greeting").textContent = `${greeting} 👋`
 
+const monthName = new Date().toLocaleDateString("en-IN", { month: "long", year: "numeric" })
+document.getElementById("currentMonth").textContent = monthName
 async function loadExpenses(){
     const expenseTableBody=document.querySelector("#expenseTableBody");
     expenseTableBody.innerHTML="";
@@ -131,3 +136,9 @@ addexpenseForm.addEventListener("submit",async (e)=>{
     }
     removeForm();
 });
+document.querySelector(".log-out-btn")
+    .addEventListener("click", () => {
+        localStorage.removeItem("access_token")
+        localStorage.removeItem("refresh_token")
+        window.location.href = "./expense_login.html"
+    })
