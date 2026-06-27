@@ -102,8 +102,8 @@ def analyse_budget(budget_details:schemas.Budget_Create,
     """Calculation Of Monthly Expenses"""
     total_expenses=calculate_expense(db,month,year,current_user.id)
     
-    used_percentage=total_expenses/amount
-    remaining=amount-total_expenses
+    used_percentage=float(total_expenses)/float(amount)
+    remaining=float(amount)-float(total_expenses)
     budget_status=""
     if(used_percentage<0.5):
         budget_status="Safe"
@@ -146,11 +146,11 @@ def analyse_budget(budget_details:schemas.Budget_Create,
         change_type=None
     else:
         if total_expenses>previous_month_spent:
-            change_type="Increases"
+            change_type="Increased"
         elif total_expenses<previous_month_spent:
-            change_type="Decreases"
+            change_type="Decreased"
         else:
-            change_type="No change"
+            change_type="is Same"
     
     """Logic For insight"""
     insight=insight_logic(total_expenses,previous_month_spent,percentage_change,change_type,top_category_name,top_category_spent)
