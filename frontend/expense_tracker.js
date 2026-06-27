@@ -1,7 +1,7 @@
 const token = localStorage.getItem("access_token");
 
 if (!token) {
-  window.location.href = "./expense_login.html";
+    window.location.href = "./expense_login.html";
 }
 const hour = new Date().getHours()
 const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening"
@@ -9,54 +9,54 @@ document.getElementById("greeting").textContent = `${greeting} 👋`
 
 const monthName = new Date().toLocaleDateString("en-IN", { month: "long", year: "numeric" })
 document.getElementById("currentMonth").textContent = monthName
-async function loadExpenses(){
-    const expenseTableBody=document.querySelector("#expenseTableBody");
-    expenseTableBody.innerHTML="";
-    const response=await apiFetch("/expenses/");
+async function loadExpenses() {
+    const expenseTableBody = document.querySelector("#expenseTableBody");
+    expenseTableBody.innerHTML = "";
+    const response = await apiFetch("/expenses/");
 
-    const expenses=await response.json();
+    const expenses = await response.json();
     expenses.forEach(expense => {
-        const tr=document.createElement("tr");
+        const tr = document.createElement("tr");
 
-        const td_title=document.createElement("td");
-        td_title.innerText=expense.title;
+        const td_title = document.createElement("td");
+        td_title.innerText = expense.title;
 
-        const td_category=document.createElement("td");
-        td_category.innerText=expense.category;
+        const td_category = document.createElement("td");
+        td_category.innerText = expense.category;
 
-        const td_amount=document.createElement("td");
-        td_amount.innerText=expense.amount;
+        const td_amount = document.createElement("td");
+        td_amount.innerText = formatAmount(expense.amount);
 
-        const td_date=document.createElement("td");
-        const date=new Date(expense.created_at);
+        const td_date = document.createElement("td");
+        const date = new Date(expense.created_at);
         td_date.innerText = date.toLocaleDateString("en-IN", {
             day: "2-digit",
             month: "short",
             year: "numeric",
-            });
+        });
 
-        const td_more=document.createElement("td");
-        const viewBtn=document.createElement("button");
+        const td_more = document.createElement("td");
+        const viewBtn = document.createElement("button");
 
-        viewBtn.innerText="View";
+        viewBtn.innerText = "View";
         viewBtn.classList.add("view-btn")
 
-        const deleteBtn=document.createElement("button")
-        deleteBtn.innerText="Delete";
+        const deleteBtn = document.createElement("button")
+        deleteBtn.innerText = "Delete";
         deleteBtn.classList.add("delete-btn");
 
-        deleteBtn.addEventListener("click",async(e)=>{
+        deleteBtn.addEventListener("click", async (e) => {
             e.preventDefault();
-            try{
-                const response=await apiFetch("/expenses"+`/${expense.id}`,{
-                    method:"DELETE",
+            try {
+                const response = await apiFetch("/expenses" + `/${expense.id}`, {
+                    method: "DELETE",
                 });
-    
-                expenseTableBody.innerHTML="";
+
+                expenseTableBody.innerHTML = "";
                 loadExpenses();
             }
-            catch(error){
-                console.log("Delete failed:",error);
+            catch (error) {
+                console.log("Delete failed:", error);
             }
         })
 
@@ -74,65 +74,65 @@ async function loadExpenses(){
 loadExpenses();
 
 
-const searchInput=document.getElementById("searchInput");
+const searchInput = document.getElementById("searchInput");
 
-if(searchInput){
-    searchInput.addEventListener("input",function(){
-        const rows=document.querySelectorAll("tbody tr");
-        const searchValue=searchInput.value.toLowerCase();
+if (searchInput) {
+    searchInput.addEventListener("input", function () {
+        const rows = document.querySelectorAll("tbody tr");
+        const searchValue = searchInput.value.toLowerCase();
 
-        rows.forEach(function(row){
-            const rowText=row.innerText.toLowerCase();
-            
-            if(rowText.includes(searchValue)){
-                row.style.display="";
+        rows.forEach(function (row) {
+            const rowText = row.innerText.toLowerCase();
+
+            if (rowText.includes(searchValue)) {
+                row.style.display = "";
             }
-            else{
-                row.style.display="none";
+            else {
+                row.style.display = "none";
             }
         })
     });
 }
 
-const modal_overlay=document.querySelector("#expenseModal");
-const addExpenseBtn=document.querySelector(".addBtn")
-const closeBtn=document.querySelector("#closeExpenseModal")
-function openForm(){
+const modal_overlay = document.querySelector("#expenseModal");
+const addExpenseBtn = document.querySelector(".addBtn")
+const closeBtn = document.querySelector("#closeExpenseModal")
+function openForm() {
     modal_overlay.classList.add("show");
 }
-function removeForm(){
+function removeForm() {
     modal_overlay.classList.remove("show");
 }
-closeBtn.addEventListener("click",removeForm);
-addExpenseBtn.addEventListener("click",openForm);
+closeBtn.addEventListener("click", removeForm);
+addExpenseBtn.addEventListener("click", openForm);
 
-const addexpenseForm=document.querySelector("#addExpenseForm");
-const expense_title=document.querySelector("#expenseTitle");
-const expense_amount=document.querySelector("#expenseAmount");
-const expense_category=document.querySelector("#expenseCategory");
-const expense_desc=document.querySelector("#expenseDescription");
-addexpenseForm.addEventListener("submit",async (e)=>{
+const addexpenseForm = document.querySelector("#addExpenseForm");
+const expense_title = document.querySelector("#expenseTitle");
+const expense_amount = document.querySelector("#expenseAmount");
+const expense_category = document.querySelector("#expenseCategory");
+const expense_desc = document.querySelector("#expenseDescription");
+addexpenseForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const title=expense_title.value;
-    const amount=parseFloat(expense_amount.value);
-    const category=expense_category.value;
-    const description=expense_desc.value;
-    if(!title || !amount || !category){
+    const title = expense_title.value;
+    const amount = parseFloat(expense_amount.value);
+    const category = expense_category.value;
+    const description = expense_desc.value;
+    if (!title || !amount || !category) {
         alert("Please fill all fields")
         return
     }
-    try{
-        const response=await apiFetch("/expenses",{
-            method:"POST",
-            headers:{"Content-Type":"application/json"},
-            body:JSON.stringify({title,amount,description,category})
+    try {
+        const response = await apiFetch("/expenses", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ title, amount, description, category })
         });
-        const data=await response.json();
-        expenseTableBody="";
+        const data = await response.json();
+        expenseTableBody = "";
         loadExpenses();
     }
-    catch(error){
-        console.log("error:",error);
+    catch (error) {
+        console.log("error:", error);
     }
     removeForm();
 });
@@ -141,4 +141,64 @@ document.querySelector(".log-out-btn")
         localStorage.removeItem("access_token")
         localStorage.removeItem("refresh_token")
         window.location.href = "./expense_login.html"
-    })
+    });
+const totalSpent=document.querySelector(".total-spent-val");
+const remainingAmount=document.querySelector(".remaining-val");
+const budgetStatus=document.querySelector(".status-val");
+const formatAmount = (amount) => {
+        return parseFloat(amount).toLocaleString("en-IN", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        })
+    }
+async function loadDashbord(){
+        // Shows a popup with a text input
+        // User types 10000 and clicks OK
+        // budget = "10000" (string)
+        const amount = parseFloat(prompt("Enter your monthly budget (₹):"));
+        
+
+        const today=new Date();
+        const month=today.getMonth()+1;
+        const year=today.getFullYear();
+
+        if(amount<=0||isNaN(amount)){
+            alert("Please enter a valid budegt");
+            return ;
+        }
+        try{
+            const response=await apiFetch("/budget-status",{
+                method:"POST",
+                headers: { "Content-Type": "application/json" },
+                body:JSON.stringify({amount,month,year})
+            });
+            const data=await response.json();
+            if(!response.ok){
+                alert(data.detail||"Budget Call Failed! Try again")
+            }
+            totalSpent.textContent=`₹${formatAmount(data.total_spent)}`;
+            remainingAmount.textContent=`₹${formatAmount(data.remaining)}`;
+            budgetStatus.textContent=data.status;
+
+            const percentage=(data.total_spent/data.budget)*100;
+            document.querySelector("#spentBar").style.width=`${Math.min(percentage,100)}%`;
+            document.querySelector("#remainingBar").style.width=`${Math.max(100-percentage,0)}%`;
+
+            //More informations
+            document.querySelector("#spentSub").textContent=data.percentage_change?`Your Expenditure ${data.change_type} by ${data.percentage_change.toFixed(1)}% Compared To last month`:"First Month Tracked ";
+
+            document.getElementById("statusSub").textContent = 
+            data.top_category?`Top drain: ${data.top_category},
+            Spent ${formatAmount(data.top_category_spent)}` 
+            : "No expenses yet"
+
+            document.getElementById("remainingSub").textContent = 
+            `of ₹${formatAmount(data.budget)} budget`
+
+            }
+
+        catch(error){
+            console.error("Network Error,Please Try again !!!");
+        }
+}
+loadDashbord();
