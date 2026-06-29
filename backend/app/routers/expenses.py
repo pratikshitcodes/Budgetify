@@ -151,10 +151,7 @@ def analyse_budget(budget_details:schemas.Budget_Create,
             change_type="Decreased"
         else:
             change_type="is Same"
-    
-    """Logic For insight"""
-    insight=insight_logic(total_expenses,previous_month_spent,percentage_change,change_type,top_category_name,top_category_spent)
-    
+    insight=insight_logic(total_expenses,previous_month_spent,percentage_change,change_type,top_category_name,top_category_spent,amount,remaining);
     return {
         "status":budget_status,
         "budget":amount,

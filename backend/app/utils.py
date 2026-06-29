@@ -3,6 +3,10 @@ pwd_context=CryptContext(schemes=["bcrypt"],deprecated="auto")
 from datetime import datetime
 from sqlalchemy import func
 from . import models
+from groq import Groq
+import os
+
+
 
 def hash(password:str):
     return pwd_context.hash(password)
@@ -20,22 +24,27 @@ def calculate_expense(db,month,year,user_id):
                                                   models.Expense.created_at<end).scalar()
     return total_expense or 0
 
-def insight_logic(total_expenses,previous_month_spent,percentage_change,change_type,top_category_name,top_category_spent):
-    insight=""
-    if previous_month_spent==None or previous_month_spent==0:
-        insight="This is your first month to be Tracked"
-    else:
-        if change_type=="Increases":
-            insight=(f"You spent ₹({total_expenses:.2f}) this month which has increased by ({percentage_change})% "
-                     f"compared to previous month, where you spent ₹({previous_month_spent:.2f}) last month."
-                     f"The main reason for this increase is ({top_category_name}) where you spent ₹({top_category_spent:.2f})")
-        elif change_type=="Decreases":
-            insight=(f"You have managed your expenses so well," 
-                     f"you spent ({abs(percentage_change)})% lesser than the previous month")
-        else:
-            insight=(
-                    f"Your spending this month (₹{total_expenses}) is similar to last month "
-                    f"(₹{previous_month_spent})."
-                )
-    return insight
-        
+def insight_logic(total_expenses, previous_month_spent, percentage_change, change_type, top_category_name, top_category_spent, budget, remaining):
+    
+    client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+    
+    prompt = f"""
+    User financial data for this month:
+    - Budget: ₹{budget}
+    - Total spent: ₹{total_expenses}
+    - Remaining: ₹{remaining}
+    - Previous month spent: ₹{previous_month_spent}
+    - Change: {percentage_change}% ({change_type})
+    - Top spending category: {top_category_name} (₹{top_category_spent})
+    
+    Give a 2-3 sentence personalized financial insight.
+    Be specific, actionable and encouraging.
+    Mention the top category and give one practical tip.
+    """
+    
+    response = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[{"role": "user", "content": prompt}]
+    )
+    
+    return response.choices[0].message.content

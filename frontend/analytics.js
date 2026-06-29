@@ -30,6 +30,7 @@ async function loadCharts(){
     })
     const budgetData = await budgetRes.json()
     renderBudgetChart(budgetData.total_spent, budgetData.remaining)
+    document.getElementById("insightText").textContent = budgetData.insight
 }
 loadCharts()  // page load pe call karo
 // Dashboard button

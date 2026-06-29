@@ -72,19 +72,38 @@
             </div>
 
             <!-- Content -->
-            <div class="content">
-
-                <div class="chart-wrap">
-                    <h3 class="chart-title">Spending by Category</h3>
-                    <canvas id="spendingChart"></canvas>
-                </div>
-                <div class="chart-wrap">
-            <h3 class="chart-title">Budget Overview</h3>
-            <canvas id="budgetChart"></canvas>
+           <div class="content">
+    <div class="analytics-layout">
+        
+        <!-- Charts Column -->
+        <div class="charts-col">
+            <div class="chart-wrap">
+                <h3 class="chart-title">Spending by Category</h3>
+                <canvas id="spendingChart"></canvas>
             </div>
+            <div class="chart-wrap">
+                <h3 class="chart-title">Budget Overview</h3>
+                <div style="height:200px; position:relative;">
+                    <canvas id="budgetChart"></canvas>
+                </div>
             </div>
         </div>
+
+        <!-- AI Insights Column -->
+        <div class="insights-col">
+            <div class="insights-section">
+                <div class="insights-header">
+                    <i class="ti ti-bulb"></i>
+                    <h3>AI Financial Insights</h3>
+                </div>
+                <div class="insight-text" id="insightText">
+                    Loading your personalized insight...
+                </div>
+            </div>
+        </div>
+
     </div>
+</div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
     <script src="./api.js"></script>
