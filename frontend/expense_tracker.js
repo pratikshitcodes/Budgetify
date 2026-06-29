@@ -69,6 +69,7 @@ async function loadExpenses() {
         tr.appendChild(td_more)
         expenseTableBody.appendChild(tr);
     });
+    renderChart(expenses);
 }
 
 loadExpenses();
@@ -202,3 +203,9 @@ async function loadDashbord(){
         }
 }
 loadDashbord();
+
+//analytics page
+document.querySelectorAll(".sidebar-btn")[1]
+    .addEventListener("click", () => {
+        window.location.href = "./analytics.html"
+    })

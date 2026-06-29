@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Budgetify-Analytics</title>
+    <link rel="stylesheet" href="./analytics.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="shell">
+
+        <!-- ── Sidebar ── -->
+        <div class="sidebar">
+            <div class="logo">
+                <div class="logo-mark"><i class="ti ti-currency-rupee"></i></div>
+                <span class="logo-text">Budgetify</span>
+            </div>
+
+            <span class="nav-label">Menu</span>
+            <button class="sidebar-btn active">
+                <i class="ti ti-layout-dashboard"></i>
+                <span>Dashboard</span>
+            </button>
+            <button class="sidebar-btn">
+                <i class="ti ti-chart-pie"></i>
+                <span>Analytics</span>
+            </button>
+            <button class="sidebar-btn">
+                <i class="ti ti-calendar-stats"></i>
+                <span>Monthly</span>
+            </button>
+            <button class="sidebar-btn">
+                <i class="ti ti-receipt"></i>
+                <span>Records</span>
+            </button>
+
+            <span class="nav-label">Account</span>
+            <button class="sidebar-btn">
+                <i class="ti ti-settings"></i>
+                <span>Settings</span>
+            </button>
+
+            <div class="user-section">
+                <div class="user-avatar">U</div>
+                <div class="user-info">
+                    <div class="user-name">My Account</div>
+                    <div class="user-email">budgetify</div>
+                </div>
+                <button class="log-out-btn" title="Logout">
+                    <i class="ti ti-logout"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- ── Main ── -->
+        <div class="main">
+
+            <!-- Topbar -->
+            <div class="topbar">
+                <div class="topbar-left">
+                    <h1 id="greeting">Budget Analysis</h1>
+                    <p>Here's your spending summary for this month</p>
+                </div>
+                <div class="topbar-right">
+                    <div class="month-pill">
+                        <i class="ti ti-calendar"></i>
+                        <span id="currentMonth"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="content">
+
+                <div class="chart-wrap">
+                    <h3 class="chart-title">Spending by Category</h3>
+                    <canvas id="spendingChart"></canvas>
+                </div>
+                <div class="chart-wrap">
+            <h3 class="chart-title">Budget Overview</h3>
+            <canvas id="budgetChart"></canvas>
+            </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <script src="./api.js"></script>
+    <script src="./analytics.js"></script>
+</body>
+</html>
