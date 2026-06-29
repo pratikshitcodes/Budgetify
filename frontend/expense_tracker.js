@@ -9,6 +9,7 @@ document.getElementById("greeting").textContent = `${greeting} 👋`
 
 const monthName = new Date().toLocaleDateString("en-IN", { month: "long", year: "numeric" })
 document.getElementById("currentMonth").textContent = monthName
+
 async function loadExpenses() {
     const expenseTableBody = document.querySelector("#expenseTableBody");
     expenseTableBody.innerHTML = "";
@@ -69,7 +70,6 @@ async function loadExpenses() {
         tr.appendChild(td_more)
         expenseTableBody.appendChild(tr);
     });
-    renderChart(expenses);
 }
 
 loadExpenses();
@@ -156,17 +156,22 @@ async function loadDashbord(){
         // Shows a popup with a text input
         // User types 10000 and clicks OK
         // budget = "10000" (string)
-        const amount = parseFloat(prompt("Enter your monthly budget (₹):"));
-        
+        const response=await apiFetch("/budget-status/current");
+        const data=await response.json();
+
+        let amount=data.amount;
+        if(!amount){
+            amount=parseFloat(prompt("Enter your monthly budget (₹:)"));
+            if(!amount||isNaN(amount)){
+                alert("Please enter a valid budegt");
+                return ;
+            }
+        }   
 
         const today=new Date();
         const month=today.getMonth()+1;
         const year=today.getFullYear();
 
-        if(amount<=0||isNaN(amount)){
-            alert("Please enter a valid budegt");
-            return ;
-        }
         try{
             const response=await apiFetch("/budget-status",{
                 method:"POST",

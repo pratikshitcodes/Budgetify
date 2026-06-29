@@ -4,17 +4,26 @@ if (!token) {
     window.location.href = "./expense_login.html";
 }
 async function loadCharts(){
-    const response = await apiFetch("/expenses/")
-    const expenses = await response.json()
-    renderChart(expenses)  // bar chart
-
-    // Budget data ke liye loadDashboard jaisa call
-    const amount = parseFloat(prompt("Enter monthly budget:"))
-    if(!amount || isNaN(amount)) return
     const month = new Date().getMonth() + 1
     const year = new Date().getFullYear()
-    
-    const budgetRes = await apiFetch("/budget-status", {
+
+    // Expenses fetch karo
+    const response = await apiFetch("/expenses/")
+    const expenses = await response.json()
+    renderChart(expenses)
+
+    // Budget check karo — same logic as dashboard
+    const currentRes = await apiFetch("/budget-status/current")
+    const currentData = await currentRes.json()
+
+    let amount = currentData.amount
+    if(!amount){
+        amount = parseFloat(prompt("Enter your monthly budget (₹):"))
+        if(!amount || isNaN(amount)) return
+    }
+
+    // Doughnut chart ke liye budget analysis call karo
+    const budgetRes = await apiFetch("/budget-status/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ amount, month, year })
@@ -22,7 +31,6 @@ async function loadCharts(){
     const budgetData = await budgetRes.json()
     renderBudgetChart(budgetData.total_spent, budgetData.remaining)
 }
-
 loadCharts()  // page load pe call karo
 // Dashboard button
 document.querySelectorAll(".sidebar-btn")[0]

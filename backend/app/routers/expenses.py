@@ -169,3 +169,15 @@ def analyse_budget(budget_details:schemas.Budget_Create,
 
         "remaining":remaining,
         "insight":insight}
+
+@budget_router.get('/current')
+def get_current_budget(db:DbSession,current_user:CurrentUser):
+    today=datetime.now()
+    budget=db.query(models.Budget).filter(
+        models.Budget.user_id==current_user.id,
+        models.Budget.month==today.month,
+        models.Budget.year==today.year
+    ).first()
+    if budget is None:
+        {"amount":None}
+    return {"amount":budget.amount}
