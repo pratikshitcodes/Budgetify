@@ -287,5 +287,23 @@ body {
 
 .insight-divider {
     height: 1px;
-    background: rgba(124, 92, 252, 0.2);
+    background: rgba(124,92,252,0.2);
+    margin: 4px 0;
+}
+.insight-tip {
+    background: rgba(124,92,252,0.1);
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 13px;
+    color: #a78bfa;
+    line-height: 1.6;
+    margin-top: auto;
+}
+.tip-label {
+    font-size: 11px;
+    color: #7c5cfc;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
 }

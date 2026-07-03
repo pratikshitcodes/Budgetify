@@ -37,9 +37,18 @@ def insight_logic(total_expenses, previous_month_spent, percentage_change, chang
     - Change: {percentage_change}% ({change_type})
     - Top spending category: {top_category_name} (₹{top_category_spent})
     
-    Give a 2-3 sentence personalized financial insight.
-    Be specific, actionable and encouraging.
-    Mention the top category and give one practical tip.
+
+    Respond in exactly this format:
+    INSIGHT: [2 sentences about their spending]
+    TIP: [1 actionable tip]
+
+    Give personalized financial insight.
+    Be specific, actionable and encouraging in 2-3 sentences.
+
+    Then give practicals tips,tips should be In bold and bullet points and heading should say Tips that you should follow for managing your expenses.
+    
+    IMPORTANT: Reply in plain text only. No markdown, no bullet points, 
+    no asterisks, no headers. Just plain sentences.
     """
     
     response = client.chat.completions.create(

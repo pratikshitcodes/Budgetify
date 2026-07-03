@@ -30,15 +30,16 @@ async function loadCharts(){
     })
     const budgetData = await budgetRes.json()
     renderBudgetChart(budgetData.total_spent, budgetData.remaining)
-    document.getElementById("insightText").textContent = budgetData.insight
+    const parts = budgetData.insight.split('TIP:')
+    document.getElementById("insightText").textContent = parts[0].replace('INSIGHT:', '').trim()
+    document.getElementById("insightTip").textContent = parts[1]?.trim() || ''
 }
-loadCharts()  // page load pe call karo
-// Dashboard button
+loadCharts()
 document.querySelectorAll(".sidebar-btn")[0]
     .addEventListener("click", () => {
         window.location.href = "./expense_tracker.html"
     })
-// Page load hone par analytics button ko active karo
+
 document.querySelectorAll(".sidebar-btn")[1].classList.add("active")
 document.querySelectorAll(".sidebar-btn")[0].classList.remove("active")
 document.querySelector(".log-out-btn")

@@ -59,8 +59,21 @@ async function loadExpenses() {
             catch (error) {
                 console.log("Delete failed:", error);
             }
-        })
+        });
+        viewBtn.addEventListener("click",async(e)=>{
+            e.preventDefault();
+            editingExpenseId=expense.id;
 
+            expense_heading.textContent="Edit Expense";
+            submitBtn.textContent="Update Expense";
+
+            expense_title.value=expense.title;
+            expense_amount.value=expense.amount;
+            expense_desc.value=expense.description;
+            expense_category.value=expense.category;
+            openForm();
+
+        })
         td_more.appendChild(viewBtn);
         td_more.appendChild(deleteBtn);
         tr.appendChild(td_title);
@@ -73,6 +86,66 @@ async function loadExpenses() {
 }
 
 loadExpenses();
+let editingExpenseId=null;
+
+const addexpenseForm = document.querySelector("#addExpenseForm");
+const expense_heading=document.querySelector(".form-heading");
+const expense_title = document.querySelector("#expenseTitle");
+const expense_amount = document.querySelector("#expenseAmount");
+const expense_category = document.querySelector("#expenseCategory");
+const expense_desc = document.querySelector("#expenseDescription");
+const submitBtn=document.querySelector(".submit-expense-btn");
+addexpenseForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const title = expense_title.value;
+    const amount = parseFloat(expense_amount.value);
+    const category = expense_category.value;
+    const description = expense_desc.value;
+    if (!title || !amount || !category) {
+        alert("Please fill all fields")
+        return
+    }
+    if(editingExpenseId===null){
+        //add
+        try {
+            const response = await apiFetch("/expenses", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ title, amount, description, category })
+            });
+            const data = await response.json();
+            expenseTableBody.innerHTML = "";
+            loadExpenses();
+        }
+        catch (error) {
+            console.log("error:", error);
+        }
+        removeForm();
+    }
+    else{
+        try{
+            const response=await apiFetch(`/expenses/${editingExpenseId}`,{
+                method:"PUT",
+                headers:{
+                    "Content-Type":"application/json"
+                },
+                body:JSON.stringify({
+                    title,
+                    amount,
+                    description,
+                    category
+                })
+            });
+            const data = await response.json();
+            expenseTableBody.innerHTML = "";
+            loadExpenses();
+        }
+        catch (error) {
+            console.log("error:", error);
+        }
+        removeForm();
+    }
+});
 
 
 const searchInput = document.getElementById("searchInput");
@@ -102,41 +175,21 @@ function openForm() {
     modal_overlay.classList.add("show");
 }
 function removeForm() {
+    editingExpenseId=null;
+    expense_title.value = "";
+    expense_amount.value = "";
+    expense_category.value = "";
+    expense_desc.value = "";
+
+    expense_heading.textContent = "Add Expense";
+    submitBtn.textContent = "Add Expense";
     modal_overlay.classList.remove("show");
 }
 closeBtn.addEventListener("click", removeForm);
-addExpenseBtn.addEventListener("click", openForm);
+addExpenseBtn.addEventListener("click",async(e)=>{
+    openForm();
+} );
 
-const addexpenseForm = document.querySelector("#addExpenseForm");
-const expense_title = document.querySelector("#expenseTitle");
-const expense_amount = document.querySelector("#expenseAmount");
-const expense_category = document.querySelector("#expenseCategory");
-const expense_desc = document.querySelector("#expenseDescription");
-addexpenseForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const title = expense_title.value;
-    const amount = parseFloat(expense_amount.value);
-    const category = expense_category.value;
-    const description = expense_desc.value;
-    if (!title || !amount || !category) {
-        alert("Please fill all fields")
-        return
-    }
-    try {
-        const response = await apiFetch("/expenses", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ title, amount, description, category })
-        });
-        const data = await response.json();
-        expenseTableBody = "";
-        loadExpenses();
-    }
-    catch (error) {
-        console.log("error:", error);
-    }
-    removeForm();
-});
 document.querySelector(".log-out-btn")
     .addEventListener("click", () => {
         localStorage.removeItem("access_token")
@@ -213,4 +266,4 @@ loadDashbord();
 document.querySelectorAll(".sidebar-btn")[1]
     .addEventListener("click", () => {
         window.location.href = "./analytics.html"
-    })
+    });

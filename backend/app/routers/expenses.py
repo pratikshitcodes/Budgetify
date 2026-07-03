@@ -153,19 +153,22 @@ def analyse_budget(budget_details:schemas.Budget_Create,
             change_type="is Same"
     insight=insight_logic(total_expenses,previous_month_spent,percentage_change,change_type,top_category_name,top_category_spent,amount,remaining);
     return {
-        "status":budget_status,
-        "budget":amount,
 
-        "total_spent":total_expenses,
-        "previous_month_spent":previous_month_spent,
-        "percentage_change":percentage_change,
-        "change_type":change_type,
+        "status": budget_status,
+        "budget": float(amount),
 
-        "top_category":top_category_name,
-        "top_category_spent":top_category_spent,
+        "total_spent": float(total_expenses),
+        "previous_month_spent": float(previous_month_spent),
 
-        "remaining":remaining,
-        "insight":insight}
+        "percentage_change": float(percentage_change) if percentage_change else None,
+        "change_type": change_type,
+
+        "top_category": top_category_name,
+        "top_category_spent": float(top_category_spent),
+        
+        "remaining": float(remaining),
+        "insight": insight
+}
 
 @budget_router.get('/current')
 def get_current_budget(db:DbSession,current_user:CurrentUser):
@@ -176,5 +179,5 @@ def get_current_budget(db:DbSession,current_user:CurrentUser):
         models.Budget.year==today.year
     ).first()
     if budget is None:
-        {"amount":None}
+        return {"amount":None}
     return {"amount":budget.amount}
