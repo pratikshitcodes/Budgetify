@@ -1,13 +1,13 @@
 from fastapi import APIRouter,Depends,status,HTTPException
 from sqlalchemy import func
 from datetime import datetime
-from typing import List,Annotated
+from typing import List,Annotated,Optional
 from .. import schemas
 from sqlalchemy.orm import Session
 from ..database import get_db
 from .. import models
 from .. import oauth
-from ..utils import calculate_expense,insight_logic
+from ..utils import calculate_expense,insight_logic,find_monthly_expenses,most_frequent_entries,day_to_day_expenses
 expense_router=APIRouter(
     tags=['CRUD Operation'],
     prefix='/expenses'
@@ -20,15 +20,26 @@ CurrentUser=Annotated[schemas.Token,Depends(oauth.get_current_user)]
 @expense_router.get('/',response_model=List[schemas.ExpenseResponse])
 def get_expenses(db:DbSession,
         current_user:CurrentUser,
+        month:Optional[int] =None,
+        year:Optional[int]  =None,
         limit:int=10,
         skip:int=0):
-    expenses=db.query(models.Expense)\
-    .filter(models.Expense.owner_id==current_user.id)\
-    .order_by(models.Expense.created_at.desc())\
-    .offset(skip)\
-    .limit(limit)\
-    .all()
-    return expenses
+   
+   query = db.query(models.Expense).filter(models.Expense.owner_id == current_user.id)
+    
+   if month and year:
+        start = datetime(year, month, 1)
+        end = datetime(year+1, 1, 1) if month == 12 else datetime(year, month+1, 1)
+        query = query.filter(
+            models.Expense.created_at >= start,
+            models.Expense.created_at < end
+        )
+    
+   return query.order_by(models.Expense.created_at.desc())\
+        .offset(skip)\
+        .limit(limit)\
+        .all()
+
 
 @expense_router.post('/',status_code=status.HTTP_201_CREATED)
 def post_expense(post_details:schemas.ExpenseCreate,db:DbSession, current_user:CurrentUser):
@@ -62,16 +73,90 @@ def update(id:int,
     db.commit()
     return expense_query.first()
 
-@budget_router.get('/')
-def get_monthly_expense(
+@expense_router.get('/chart-data')
+def get_chart_data(db: DbSession, current_user: CurrentUser,
+                   month: int = None, year: int = None):
+    
+    if month and year:
+        start = datetime(year, month, 1)
+        end = datetime(year+1, 1, 1) if month == 12 else datetime(year, month+1, 1)
+        expenses = db.query(models.Expense).filter(
+            current_user.id==models.Expense.owner_id,
+            models.Expense.created_at >= start,
+            models.Expense.created_at < end
+        ).all()
+    
+    return expenses
+@budget_router.get('/monthly-stats')
+def analyse_monthly_expenses(
         db:DbSession,
-        current_user:CurrentUser):
-    today=datetime.now()
-    start_of_month=today.replace(day=1)
-    total=db.query(func.sum(models.Expense.amount)).filter(models.Expense.owner_id==current_user.id,models.Expense.created_at>=start_of_month).scalar()
-    if total is None:
-        total=0
-    return total
+        current_user:CurrentUser,
+        month:Optional[int]=None,
+        year:Optional[int]=None):
+    
+    this_month_total=calculate_expense(db,month,year,current_user.id)
+
+    prev_month_total=calculate_expense(db,12,year-1,current_user.id) if month==1 else calculate_expense(db,month-1,year,current_user.id)
+    
+    this_month_expenses=find_monthly_expenses(db,month,year,current_user.id)
+
+    prev_month_expenses=find_monthly_expenses(db,12,year-1,current_user.id) if month==1 else find_monthly_expenses(db,month-1,year,current_user.id)
+
+    this_month_count=len(this_month_expenses)
+    prev_month_count=len(prev_month_expenses)
+
+    highest=max(this_month_expenses,key=lambda e:e.amount,default=None)
+
+    
+    avg=sum(float(e.amount) for e in this_month_expenses)/len(this_month_expenses) if this_month_expenses else 0
+
+    highest_data=None
+    if highest:
+        highest_data={
+            "title":highest.title,
+            "category":highest.category,
+            "amount":float(highest.amount)
+        }
+
+    #category comparision list
+    all_categories=set(
+        [e.category for e in this_month_expenses]+
+        [e.category for e in prev_month_expenses]
+    )
+
+    category_comparision={}
+    for cat in all_categories:
+        this_total=sum(float(e.amount) for e in this_month_expenses if e.category==cat)
+        prev_total=sum(float(e.amount) for e in prev_month_expenses if e.category==cat)
+        category_comparision[cat]={
+            "this":this_total,
+            "prev":prev_total
+        }
+    top3 = sorted(this_month_expenses, key=lambda e: e.amount, reverse=True)[:3]
+    this_graph=day_to_day_expenses(db,month,year,current_user.id)
+    prev_graph=day_to_day_expenses(db,month-1,year,current_user.id)
+    return {
+        "this_month_total":this_month_total,
+        "prev_month_total":prev_month_total,
+
+        "this_month_expenses":this_month_expenses,
+        "prev_month_expenses":prev_month_expenses,
+
+        "this_month_count":this_month_count,
+        "prev_month_count":prev_month_count,
+
+        "highest":highest_data,
+        "average":avg,
+        "top3_expenses": [
+        {"title": e.title, "amount": float(e.amount), "category": e.category}
+            for e in top3
+        ],
+        "category_comparison":category_comparision,
+
+        "this_month_daily":this_graph,
+        "prev_month_daily":prev_graph
+    }
+
 
 
 @budget_router.post('/',response_model=schemas.Budget_Response)

@@ -8,7 +8,7 @@ async function loadCharts(){
     const year = new Date().getFullYear()
 
     // Expenses fetch karo
-    const response = await apiFetch("/expenses/")
+    const response = await apiFetch(`/expenses/chart-data?month=${month}&year=${year}`)
     const expenses = await response.json()
     renderChart(expenses)
 

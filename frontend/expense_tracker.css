@@ -399,7 +399,8 @@ body {
     background: #18181f;
     border: 1px solid #2a2a35;
     border-radius: 14px;
-    overflow: hidden
+    overflow-y: scroll;
+    max-height: 400px;
 }
 .chart-wrap{
     background: #18181f;
@@ -421,6 +422,9 @@ table {
 }
 
 thead tr {
+    position: sticky;
+    top: 0;
+    z-index: 1;
     background: #1e1e28
 }
 

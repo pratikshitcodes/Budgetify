@@ -11,9 +11,11 @@ const monthName = new Date().toLocaleDateString("en-IN", { month: "long", year: 
 document.getElementById("currentMonth").textContent = monthName
 
 async function loadExpenses() {
+    const month=new Date().getMonth()+1;
+    const year=new Date().getFullYear();
     const expenseTableBody = document.querySelector("#expenseTableBody");
     expenseTableBody.innerHTML = "";
-    const response = await apiFetch("/expenses/");
+    const response = await apiFetch(`/expenses?month=${month}&year=${year}`);
 
     const expenses = await response.json();
     expenses.forEach(expense => {
@@ -266,4 +268,8 @@ loadDashbord();
 document.querySelectorAll(".sidebar-btn")[1]
     .addEventListener("click", () => {
         window.location.href = "./analytics.html"
+    });
+document.querySelectorAll(".sidebar-btn")[2]
+    .addEventListener("click", () => {
+        window.location.href = "./monthly.html"
     });
