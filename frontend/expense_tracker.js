@@ -3,16 +3,53 @@ const token = localStorage.getItem("access_token");
 if (!token) {
     window.location.href = "./expense_login.html";
 }
+const monthNames=[
+    "January","February","March","April","May","June",
+    "July","August","September","October","November","December"
+];
+monthNames.forEach((month, index) => {
+    const option = document.createElement("option");
+    option.value = index + 1;
+    option.textContent = month;
+    monthSelector.appendChild(option);
+});
+for (let year = 2024; year <= 2030; year++) {
+    const option = document.createElement("option");
+    option.value = year;
+    option.textContent = year;
+    yearSelector.appendChild(option);
+}
 const hour = new Date().getHours()
 const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening"
 document.getElementById("greeting").textContent = `${greeting} 👋`
 
-const monthName = new Date().toLocaleDateString("en-IN", { month: "long", year: "numeric" })
-document.getElementById("currentMonth").textContent = monthName
+const monthSelect = document.getElementById("monthSelector");
+const yearSelect = document.getElementById("yearSelector");
+const savedMonth = localStorage.getItem("selectedMonth");
+const savedYear = localStorage.getItem("selectedYear");
+
+const today = new Date();
+
+const currentMonth = savedMonth
+    ? Number(savedMonth)
+    : today.getMonth() + 1;
+
+const currentYear = savedYear
+    ? Number(savedYear)
+    : today.getFullYear();
+
+monthSelect.value = currentMonth;
+yearSelect.value = currentYear;
+
+let selectedMonth = currentMonth;
+let selectedYear = currentYear;
+
+document.getElementById("currentMonth").textContent =
+    `${monthNames[selectedMonth-1]} ${selectedYear}`;
 
 async function loadExpenses() {
-    const month=new Date().getMonth()+1;
-    const year=new Date().getFullYear();
+    const month = selectedMonth;
+    const year = selectedYear;
     const expenseTableBody = document.querySelector("#expenseTableBody");
     expenseTableBody.innerHTML = "";
     const response = await apiFetch(`/expenses?month=${month}&year=${year}`);
@@ -207,13 +244,13 @@ const formatAmount = (amount) => {
             maximumFractionDigits: 2
         })
     }
-async function loadDashbord(){
+let currentBudget=0;
+async function loadDashboard(){
         // Shows a popup with a text input
         // User types 10000 and clicks OK
         // budget = "10000" (string)
         const response=await apiFetch("/budget-status/current");
         const data=await response.json();
-
         let amount=data.amount;
         if(!amount){
             amount=parseFloat(prompt("Enter your monthly budget (₹:)"));
@@ -222,10 +259,10 @@ async function loadDashbord(){
                 return ;
             }
         }   
+        currentBudget=amount;
 
-        const today=new Date();
-        const month=today.getMonth()+1;
-        const year=today.getFullYear();
+        const month = selectedMonth;
+        const year = selectedYear;
 
         try{
             const response=await apiFetch("/budget-status",{
@@ -238,8 +275,8 @@ async function loadDashbord(){
                 alert(data.detail||"Budget Call Failed! Try again")
             }
             totalSpent.textContent=`₹${formatAmount(data.total_spent)}`;
-            remainingAmount.textContent=`₹${formatAmount(data.remaining)}`;
-            budgetStatus.textContent=data.status;
+            remainingAmount.textContent=`₹${formatAmount(data.remaining>0?data.remaining:0)}`;
+            budgetStatus.textContent=data.remaining>0?`${data.status}`:`${data.status} BY ₹${formatAmount(Math.abs(data.remaining))}`;
 
             const percentage=(data.total_spent/data.budget)*100;
             document.querySelector("#spentBar").style.width=`${Math.min(percentage,100)}%`;
@@ -262,7 +299,7 @@ async function loadDashbord(){
             console.error("Network Error,Please Try again !!!");
         }
 }
-loadDashbord();
+loadDashboard();
 
 //analytics page
 document.querySelectorAll(".sidebar-btn")[1]
@@ -273,3 +310,98 @@ document.querySelectorAll(".sidebar-btn")[2]
     .addEventListener("click", () => {
         window.location.href = "./monthly.html"
     });
+
+const budgetModal=document.getElementById("budgetModal");
+
+
+
+// Open Modal
+document.getElementById("openBudgetModal").addEventListener("click",()=>{
+
+    document.getElementById("modalMonthYear").textContent=
+        `${monthNames[selectedMonth-1]} ${selectedYear}`;
+
+    document.getElementById("budgetInput").value=currentBudget;
+
+    budgetModal.classList.add("show");
+});
+
+// Close
+function closeBudgetModal(){
+    budgetModal.classList.remove("show");
+}
+
+document.getElementById("closeBudgetModal")
+.addEventListener("click",closeBudgetModal);
+
+document.getElementById("cancelBudget")
+.addEventListener("click",closeBudgetModal);
+
+budgetModal.addEventListener("click",(e)=>{
+
+    if(e.target===budgetModal){
+        closeBudgetModal();
+    }
+
+});
+
+document.getElementById("saveBudget")
+.addEventListener("click",async()=>{
+    console.log("Save button clicked");
+
+    const amount=Number(document.getElementById("budgetInput").value);
+
+    if(amount<=0){
+        alert("Please enter a valid budget.");
+        return;
+    }
+
+    try{
+        console.log(selectedMonth, selectedYear, amount);
+
+        await apiFetch(`/budget-status?month=${selectedMonth}&year=${selectedYear}`,{
+
+            method:"PUT",
+
+            headers:{
+                "Content-Type":"application/json"
+            },
+
+            body:JSON.stringify({
+                amount:amount
+            })
+
+        });
+        closeBudgetModal();
+        await loadDashboard();
+        await loadExpenses();
+
+    }
+    catch(err){
+        console.error(err);
+        alert("Unable to update budget.");
+    }
+
+});
+monthSelect.addEventListener("change", () => {
+    selectedMonth = Number(monthSelector.value);
+
+    localStorage.setItem("selectedMonth", selectedMonth);
+
+    document.getElementById("currentMonth").textContent =
+        `${monthNames[selectedMonth-1]} ${selectedYear}`;
+    
+    loadExpenses();
+    loadDashboard();
+});
+
+yearSelect.addEventListener("change", () => {
+    selectedYear = Number(yearSelector.value);
+
+    localStorage.setItem("selectedYear", selectedYear);
+
+    document.getElementById("currentMonth").textContent =
+        `${monthNames[selectedMonth-1]} ${selectedYear}`;
+    loadExpenses();
+    loadDashboard();
+});

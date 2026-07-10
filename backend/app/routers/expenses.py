@@ -1,13 +1,15 @@
 from fastapi import APIRouter,Depends,status,HTTPException
 from sqlalchemy import func
-from datetime import datetime
 from typing import List,Annotated,Optional
 from .. import schemas
 from sqlalchemy.orm import Session
 from ..database import get_db
 from .. import models
+from datetime import datetime
 from .. import oauth
-from ..utils import calculate_expense,insight_logic,find_monthly_expenses,most_frequent_entries,day_to_day_expenses
+from ..utils import calculate_expense,insight_logic,find_monthly_expenses,day_to_day_expenses,most_frequent_entries,insight_logic_this_prev_month
+import calendar
+from decimal import Decimal
 expense_router=APIRouter(
     tags=['CRUD Operation'],
     prefix='/expenses'
@@ -110,6 +112,8 @@ def analyse_monthly_expenses(
     
     avg=sum(float(e.amount) for e in this_month_expenses)/len(this_month_expenses) if this_month_expenses else 0
 
+    
+
     highest_data=None
     if highest:
         highest_data={
@@ -124,17 +128,59 @@ def analyse_monthly_expenses(
         [e.category for e in prev_month_expenses]
     )
 
-    category_comparision={}
+    category_comparison={}
     for cat in all_categories:
         this_total=sum(float(e.amount) for e in this_month_expenses if e.category==cat)
         prev_total=sum(float(e.amount) for e in prev_month_expenses if e.category==cat)
-        category_comparision[cat]={
+        category_comparison[cat]={
             "this":this_total,
             "prev":prev_total
         }
+    most_frequent=most_frequent_entries(db,month,year,current_user.id)
     top3 = sorted(this_month_expenses, key=lambda e: e.amount, reverse=True)[:3]
     this_graph=day_to_day_expenses(db,month,year,current_user.id)
     prev_graph=day_to_day_expenses(db,month-1,year,current_user.id)
+
+    days_in_month=calendar.monthrange(year,month)[1]
+    today=datetime.now()
+    days_passed=today.day
+    days_remaining=days_in_month-days_passed
+
+    projected_daily=avg*days_in_month
+
+    current_avg_pace=float(this_month_total)/days_passed if days_passed>0 else 0
+
+    budget=db.query(models.Budget).filter(
+        models.Budget.user_id==current_user.id,
+        models.Budget.month==month,
+        models.Budget.year==year
+    ).first()
+
+    remaining_budget=budget.amount-Decimal(this_month_total)
+    safe_daily=(Decimal(budget.amount)-Decimal(this_month_total))/Decimal(days_remaining) if days_remaining>0 else 0
+
+
+    if current_avg_pace>0:
+        day_until_budget_exhausted=round(float(remaining_budget)/current_avg_pace)
+    else:
+        day_until_budget_exhausted=None
+    message=None
+    status=None
+    if(safe_daily>=avg):
+        status="Safe"
+        message = f"Great job! You're comfortably within your budget. Your recommended daily spending limit is ₹{safe_daily:.2f} for the rest of the month."
+    
+    elif(0<safe_daily<avg):
+        status="Be cautious"
+        if day_until_budget_exhausted is not None and day_until_budget_exhausted < days_remaining:
+            message = f"At your current spending pace, your budget may be exhausted in about {day_until_budget_exhausted} days."
+        else:
+            message = "You're still within budget, but your remaining daily spending limit is getting lower. Spend wisely."
+    else:
+        status="Warning"
+        message="You have already exceeded your monthly budget. Any further spending will be above your planned budget."
+    insight_message=insight_logic_this_prev_month(status,this_month_total,projected_daily,current_avg_pace,safe_daily,days_remaining,remaining_budget,float(budget.amount),message)
+
     return {
         "this_month_total":this_month_total,
         "prev_month_total":prev_month_total,
@@ -145,16 +191,27 @@ def analyse_monthly_expenses(
         "this_month_count":this_month_count,
         "prev_month_count":prev_month_count,
 
+        "most_frequent_entry":most_frequent,
         "highest":highest_data,
-        "average":avg,
+        "recommended_daily_pace":avg,
         "top3_expenses": [
         {"title": e.title, "amount": float(e.amount), "category": e.category}
             for e in top3
         ],
-        "category_comparison":category_comparision,
+        "category_comparison":category_comparison,
 
         "this_month_daily":this_graph,
-        "prev_month_daily":prev_graph
+        "prev_month_daily":prev_graph,
+
+        "projected_daily":projected_daily,
+        "current_avg_pace":current_avg_pace,
+        "safe_daily":safe_daily,
+        "remaining_days":days_remaining,
+
+        "remaining_budget":remaining_budget,
+        "budget":float(budget.amount),
+        "status":status,
+        "insight":insight_message,
     }
 
 
@@ -266,3 +323,28 @@ def get_current_budget(db:DbSession,current_user:CurrentUser):
     if budget is None:
         return {"amount":None}
     return {"amount":budget.amount}
+
+@budget_router.put('/')
+def update_budget(
+    updated_details:schemas.Budget_Update,
+    db:DbSession,
+    current_user:CurrentUser,
+    month:int,
+    year:int):
+    
+    
+    budget_query=db.query(models.Budget).filter(
+        models.Budget.user_id==current_user.id,
+        models.Budget.month==month,
+        models.Budget.year==year
+    )
+    budget=budget_query.first()
+    if budget is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"No result found")
+    budget_query.update(updated_details.model_dump(),synchronize_session=False)
+    db.commit()
+    return {
+        "message":"Budget updated successfully",
+        "budget":budget_query.first()
+    }
+

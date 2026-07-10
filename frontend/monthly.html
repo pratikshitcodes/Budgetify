@@ -83,27 +83,46 @@
             </div>
 
             <!-- Top Cards -->
-            <div class="top-cards">
-                <div class="card card-m1">
-                    <div class="card-icon"><i class="ti ti-calendar-month"></i></div>
-                    <div class="card-label" id="m1Label">This Month</div>
-                    <div class="card-value" id="m1Total">—</div>
-                    <div class="card-sub" id="m1Count">— transactions</div>
+            <div class="container">
+                <div class="top-cards">
+                    <div class="card card-m1">
+                        <div class="card-icon"><i class="ti ti-calendar-month"></i></div>
+                        <div class="card-label" id="m1Label">This Month</div>
+                        <div class="card-value" id="m1Total">—</div>
+                        <div class="card-sub" id="m1Count">— transactions</div>
+                    </div>
+                    <div class="card card-m2">
+                        <div class="card-icon"><i class="ti ti-calendar"></i></div>
+                        <div class="card-label" id="m2Label">Last Month</div>
+                        <div class="card-value" id="m2Total">—</div>
+                        <div class="card-sub" id="m2Count">— transactions</div>
+                    </div>
+                    <div class="card card-diff" id="diffCard">
+                        <div class="card-icon"><i class="ti ti-trending-up" id="trendIcon"></i></div>
+                        <div class="card-label">Change</div>
+                        <div class="card-value" id="changeVal">—</div>
+                        <div class="card-sub" id="changeType">—</div>
+                    </div>
                 </div>
-                <div class="card card-m2">
-                    <div class="card-icon"><i class="ti ti-calendar"></i></div>
-                    <div class="card-label" id="m2Label">Last Month</div>
-                    <div class="card-value" id="m2Total">—</div>
-                    <div class="card-sub" id="m2Count">— transactions</div>
-                </div>
-                <div class="card card-diff" id="diffCard">
-                    <div class="card-icon"><i class="ti ti-trending-up" id="trendIcon"></i></div>
-                    <div class="card-label">Change</div>
-                    <div class="card-value" id="changeVal">—</div>
-                    <div class="card-sub" id="changeType">—</div>
+                <div class="projection-row">
+                    <div class="proj-card">
+                        <div class="proj-icon">
+                           <i class="ti ti-chart-line"></i>
+                        </div>
+                        <div class="proj-label">Projected Month End</div>
+                        <div class="proj-val" id="projectedEnd">—</div>
+                        <div class="proj-sub">On an Average you are sprending <span></span> Daily</div>
+                    </div>
+                    <div class="proj-card" id="safeCard">
+                        <div class="proj-icon">
+                            <i class="ti ti-pig-money"></i>
+                        </div>
+                        <div class="proj-label">Safe Daily Spending</div>
+                        <div class="proj-status green" id="status">-</div>
+                        <div class="proj-sub" id="insight"></div>
+                    </div>
                 </div>
             </div>
-
             <!-- Worm Graph -->
             <div class="chart-box">
                 <div class="chart-title">Cumulative spending trend</div>
@@ -131,18 +150,19 @@
             </div>
 
             <!-- Category Comparison -->
-            <div class="hbar-box">
-                <div class="stat-title">Category comparison</div>
-                <div class="hbar-legend">
-                    <div class="legend-item"><div class="legend-dot" style="background:#7c5cfc"></div><span>Month 1</span></div>
-                    <div class="legend-item"><div class="legend-dot" style="background:#1D9E75"></div><span>Month 2</span></div>
+            <div class="chart-box">
+                <div class="chart-title">Category Comparison</div>
+                <div class="chart-sub">
+                    Compare spending across categories for both months
                 </div>
-                <div id="categoryBars"></div>
+
+                <canvas id="categoryChart"></canvas>
             </div>
 
         </div>
     </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/3.0.1/chartjs-plugin-annotation.min.js"></script>
 <script src="./api.js"></script>
 <script src="./monthly.js"></script>

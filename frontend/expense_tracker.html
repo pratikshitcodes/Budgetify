@@ -13,9 +13,50 @@
 
         <!-- ── Sidebar ── -->
         <div class="sidebar">
-            <div class="logo">
-                <div class="logo-mark"><i class="ti ti-currency-rupee"></i></div>
-                <span class="logo-text">Budgetify</span>
+            <div class="logo-container">
+                <div class="logo">
+                    <div class="logo-mark"><i class="ti ti-currency-rupee"></i></div>
+                    <span class="logo-text">Budgetify</span>
+                </div>
+                <button class="update-budget-btn" id="openBudgetModal">
+                    Update Budget
+                </button>
+
+                <div class="modal-overlay" id="budgetModal">
+                    <div class="budget-modal">
+
+                        <div class="modal-header">
+                            <h2>Update Budget</h2>
+                            <button class="close-btn" id="closeBudgetModal">&times;</button>
+                        </div>
+
+                        <p class="modal-info">
+                            Updating budget for
+                            <span id="modalMonthYear"></span>
+                        </p>
+
+                        <div class="input-group">
+                            <label>Budget Amount</label>
+                            <input
+                                type="number"
+                                id="budgetInput"
+                                placeholder="Enter budget"
+                                min="0"
+                            >
+                        </div>
+
+                        <div class="modal-actions">
+                            <button class="cancel-btn" id="cancelBudget">
+                                Cancel
+                            </button>
+
+                            <button type="button" class="save-btn" id="saveBudget">
+                                Save Changes
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
             </div>
 
             <span class="nav-label">Menu</span>
@@ -108,6 +149,15 @@
                     <button class="addBtn">
                         <i class="ti ti-plus"></i> Add Expense
                     </button>
+
+                    <div class="month-year-selector">
+                        <select id="monthSelector">
+                        </select>
+
+                        <select id="yearSelector">
+                        </select>
+
+                    </div>
                 </div>
 
                 <div class="search-wrap">

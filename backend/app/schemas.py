@@ -64,7 +64,7 @@ class Budget_Create(BaseModel):
     year:int
 
     @validator('amount')
-    def amount_psoitive(cls,v):
+    def amount_positive(cls,v):
         if v<=0:
             raise ValueError('Budget must be positive')
         return v
@@ -85,3 +85,11 @@ class Budget_Response(BaseModel):
 
     remaining:float
     insight:str
+
+class Budget_Update(BaseModel):
+    amount:int
+    @validator('amount')
+    def amount_positive(cls,v):
+        if v<=0:
+            raise ValueError('Budget must be positive')
+        return v

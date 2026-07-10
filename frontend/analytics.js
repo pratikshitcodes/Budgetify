@@ -29,7 +29,7 @@ async function loadCharts(){
         body: JSON.stringify({ amount, month, year })
     })
     const budgetData = await budgetRes.json()
-    renderBudgetChart(budgetData.total_spent, budgetData.remaining)
+    renderBudgetChart(budgetData.total_spent, budgetData.remaining>0?budgetData.remaining:0)
     const parts = budgetData.insight.split('TIP:')
     document.getElementById("insightText").textContent = parts[0].replace('INSIGHT:', '').trim()
     document.getElementById("insightTip").textContent = parts[1]?.trim() || ''
@@ -125,3 +125,7 @@ function renderBudgetChart(spent, remaining){
         }
     })
 }
+document.querySelectorAll(".sidebar-btn")[2]
+    .addEventListener("click", () => {
+        window.location.href = "./monthly.html"
+    });
