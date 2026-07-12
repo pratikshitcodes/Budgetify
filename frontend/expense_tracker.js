@@ -43,6 +43,8 @@ yearSelect.value = currentYear;
 
 let selectedMonth = currentMonth;
 let selectedYear = currentYear;
+localStorage.setItem("selectedmonth",selectedMonth);
+localStorage.setItem("selectedyear",selectedYear);
 
 document.getElementById("currentMonth").textContent =
     `${monthNames[selectedMonth-1]} ${selectedYear}`;
@@ -244,62 +246,7 @@ const formatAmount = (amount) => {
             maximumFractionDigits: 2
         })
     }
-let currentBudget=0;
-async function loadDashboard(){
-        // Shows a popup with a text input
-        // User types 10000 and clicks OK
-        // budget = "10000" (string)
-        const response=await apiFetch("/budget-status/current");
-        const data=await response.json();
-        let amount=data.amount;
-        if(!amount){
-            amount=parseFloat(prompt("Enter your monthly budget (₹:)"));
-            if(!amount||isNaN(amount)){
-                alert("Please enter a valid budegt");
-                return ;
-            }
-        }   
-        currentBudget=amount;
 
-        const month = selectedMonth;
-        const year = selectedYear;
-
-        try{
-            const response=await apiFetch("/budget-status",{
-                method:"POST",
-                headers: { "Content-Type": "application/json" },
-                body:JSON.stringify({amount,month,year})
-            });
-            const data=await response.json();
-            if(!response.ok){
-                alert(data.detail||"Budget Call Failed! Try again")
-            }
-            totalSpent.textContent=`₹${formatAmount(data.total_spent)}`;
-            remainingAmount.textContent=`₹${formatAmount(data.remaining>0?data.remaining:0)}`;
-            budgetStatus.textContent=data.remaining>0?`${data.status}`:`${data.status} BY ₹${formatAmount(Math.abs(data.remaining))}`;
-
-            const percentage=(data.total_spent/data.budget)*100;
-            document.querySelector("#spentBar").style.width=`${Math.min(percentage,100)}%`;
-            document.querySelector("#remainingBar").style.width=`${Math.max(100-percentage,0)}%`;
-
-            //More informations
-            document.querySelector("#spentSub").textContent=data.percentage_change?`Your Expenditure ${data.change_type} by ${data.percentage_change.toFixed(1)}% Compared To last month`:"First Month Tracked ";
-
-            document.getElementById("statusSub").textContent = 
-            data.top_category?`Top drain: ${data.top_category},
-            Spent ${formatAmount(data.top_category_spent)}` 
-            : "No expenses yet"
-
-            document.getElementById("remainingSub").textContent = 
-            `of ₹${formatAmount(data.budget)} budget`
-
-            }
-
-        catch(error){
-            console.error("Network Error,Please Try again !!!");
-        }
-}
-loadDashboard();
 
 //analytics page
 document.querySelectorAll(".sidebar-btn")[1]
@@ -345,44 +292,103 @@ budgetModal.addEventListener("click",(e)=>{
 
 });
 
-document.getElementById("saveBudget")
-.addEventListener("click",async()=>{
-    console.log("Save button clicked");
+let budgetExists = false;
+let currentBudget=0;
+function saveBudget(method){
+    document.getElementById("saveBudget")
+    .addEventListener("click",async()=>{
+        console.log("Save button clicked");
 
-    const amount=Number(document.getElementById("budgetInput").value);
+        const budget=Number(document.getElementById("budgetInput").value);
 
-    if(amount<=0){
-        alert("Please enter a valid budget.");
-        return;
-    }
+        if(budget<=0){
+            alert("Please enter a valid budget.");
+            return;
+        }
 
-    try{
-        console.log(selectedMonth, selectedYear, amount);
+        const method = budgetExists ? "PUT" : "POST";
 
-        await apiFetch(`/budget-status?month=${selectedMonth}&year=${selectedYear}`,{
+        try{
 
-            method:"PUT",
-
-            headers:{
-                "Content-Type":"application/json"
-            },
-
-            body:JSON.stringify({
-                amount:amount
+            await apiFetch("/budget-status",{
+                    method:method,
+                    headers:{
+                        "Content-Type":"application/json"
+                    },
+                    body:JSON.stringify({
+                        amount:budget,
+                        month:selectedMonth,
+                        year:selectedYear})
             })
+            closeBudgetModal();
+            await loadDashboard();
+            await loadExpenses();
 
-        });
-        closeBudgetModal();
-        await loadDashboard();
-        await loadExpenses();
+        }
+        catch(err){
+            console.error(err);
+            alert("Unable set the budget.");
+        }
 
-    }
-    catch(err){
-        console.error(err);
-        alert("Unable to update budget.");
-    }
+    });
+}
+const saveBudgetBtn = document.getElementById("saveBudget");
+saveBudgetBtn.addEventListener("click", saveBudget);
 
-});
+async function loadDashboard(){
+        // Shows a popup with a text input
+        // User types 10000 and clicks OK
+        // budget = "10000" (string)
+        const response=await apiFetch(`/budget-status/current?month=${selectedMonth}&year=${selectedYear}`);
+        const data=await response.json();
+        let amount=data.amount;
+        if(!amount){
+            document.getElementById("modalMonthYear").textContent=
+            `${monthNames[selectedMonth-1]} ${selectedYear}`;
+
+            document.getElementById("budgetInput").value=0;
+
+            budgetModal.classList.add("show");
+            return ; 
+        } 
+        budgetExists=true;
+        currentBudget=amount;
+
+        const month = selectedMonth;
+        const year = selectedYear;
+
+        try{
+            const response=await apiFetch(`/budget-status/analytics?month=${selectedMonth}&year=${selectedYear}`);
+            const data=await response.json();
+            if(!response.ok){
+                alert(data.detail||"Budget Call Failed! Try again")
+            }
+            totalSpent.textContent=`₹${formatAmount(data.total_spent)}`;
+            remainingAmount.textContent=`₹${formatAmount(data.remaining>0?data.remaining:0)}`;
+            budgetStatus.textContent=data.remaining>0?`${data.status}`:`${data.status} BY ₹${formatAmount(Math.abs(data.remaining))}`;
+
+            const percentage=(data.total_spent/data.budget)*100;
+            document.querySelector("#spentBar").style.width=`${Math.min(percentage,100)}%`;
+            document.querySelector("#remainingBar").style.width=`${Math.max(100-percentage,0)}%`;
+
+            //More informations
+            document.querySelector("#spentSub").textContent=data.percentage_change?`Your Expenditure ${data.change_type} by ${data.percentage_change.toFixed(1)}% Compared To last month`:"First Month Tracked ";
+
+            document.getElementById("statusSub").textContent = 
+            data.top_category?`Top drain: ${data.top_category},
+            Spent ${formatAmount(data.top_category_spent)}` 
+            : "No expenses yet"
+
+            document.getElementById("remainingSub").textContent = 
+            `of ₹${formatAmount(data.budget)} budget`
+
+            }
+
+        catch(error){
+            console.error("Network Error,Please Try again !!!");
+        }
+}
+loadDashboard();
 monthSelect.addEventListener("change", () => {
     selectedMonth = Number(monthSelector.value);
 

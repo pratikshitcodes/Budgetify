@@ -1,9 +1,15 @@
 const token = localStorage.getItem("access_token")
 if (!token) window.location.href = "./expense_login.html"
 
+const selectedMonth =Number(localStorage.getItem("selectedmonth")); 
+const selectedYear = Number(localStorage.getItem("selectedyear"));
+const prevMonth = Number(selectedMonth === 1 ? 12 : selectedMonth - 1)
 // Set current month in topbar
-const monthName = new Date().toLocaleDateString("en-IN", { month: "long", year: "numeric" })
-document.getElementById("currentMonth").textContent = monthName
+const date =new Date(selectedYear,selectedMonth-1);
+document.getElementById("currentMonth").textContent = date.toLocaleDateString("en-IN",{
+    month:"long",
+    year:"numeric"
+});
 
 // Format amount
 const formatAmount = (amount) => parseFloat(amount).toLocaleString("en-IN", {
@@ -31,11 +37,14 @@ document.querySelector(".log-out-btn").addEventListener("click", () => {
 async function loadMonthlyData(m1, y,m2) {
     try {
         // Budget
-        const budgetRes = await apiFetch("/budget-status/current")
-        const budgetData = await budgetRes.json()
-        const budgetAmount = budgetData.amount || 0
+        const budgetRes = await apiFetch(`/budget-status/current?month=${selectedMonth}&year=${selectedYear}`)
+        if(budgetRes.status===404){
+            window.location.href="./expense_tracker.html";
+            return ;
+        }
+        const budgetData = await budgetRes.json();
+        const budgetAmount = budgetData.amount;
 
-        // Month 1 stats
         const statsRes = await apiFetch(
             `/budget-status/monthly-stats?month=${m1}&year=${y}`
         );
@@ -348,16 +357,10 @@ document.getElementById("compareBtn").addEventListener("click", () => {
 })
 
 // Default load — current vs previous
-const today = new Date()
-const currentMonth = today.getMonth() + 1
-const currentYear = today.getFullYear()
-const prevMonth = currentMonth === 1 ? 12 : currentMonth - 1
-const prevYear = currentMonth === 1 ? currentYear - 1 : currentYear
 
-document.getElementById("month1").value = currentMonth
-document.getElementById("year1").value = currentYear
+document.getElementById("month1").value = selectedMonth
+document.getElementById("year1").value = selectedYear
 document.getElementById("month2").value = prevMonth
- 
 
-loadMonthlyData(currentMonth, currentYear, prevMonth)
+loadMonthlyData(selectedMonth, selectedYear, prevMonth)
 

@@ -92,6 +92,75 @@ uvicorn app.main:app --reload
 - [ ] Export to CSV
 - [ ] Deployment
 
+Major Architectural Refactor (Day 20)
+
+During development, I realized that my initial backend design had several architectural flaws. Instead of patching the code, I redesigned the API to follow better REST principles and improve scalability.
+
+Problems in the Initial Design
+1.Fetched unnecessary data
+After login, the application fetched expenses from all months, even though the user only needed data for a single selected month.
+This increased database load and wasted bandwidth.
+
+2.No month navigation
+The dashboard always displayed the current month.
+Users couldn't switch back to previous months or analyze old spending.
+
+3.Budget couldn't be updated
+Once a budget was created, there was no dedicated way to modify it.
+
+4.Single endpoint with multiple responsibilities
+A single POST /budget-status endpoint was responsible for:
+Initializing the monthly budget
+Performing budget analytics
+Returning dashboard data
+This violated the Single Responsibility Principle and made the API difficult to maintain.
+Solution
+
+The backend architecture was redesigned by separating responsibilities into dedicated endpoints.
+
+1. GET Budget Analytics
+
+Returns analytics for the selected month and year.
+
+GET /budget-status?month={month}&year={year}
+
+2. POST Budget
+
+Creates a budget only if it doesn't already exist for the selected month.
+
+POST /budget-status
+
+3. PUT Budget
+
+Updates the budget for a specific month and year.
+
+PUT /budget-status?month={month}&year={year}
+Month & Year Synchronization
+
+Introduced a global Month-Year selector that synchronizes data across the entire application.
+
+The selected month and year are now consistently applied to:
+
+Dashboard
+Expense List
+Budget Analytics
+Monthly Analysis
+Charts
+Budget Updates
+
+This allows users to seamlessly analyze any month instead of being restricted to the current one.
+
+Outcome
+
+This refactor resulted in:
+
+Better API design
+Clear separation of responsibilities
+Reduced unnecessary database queries
+Improved scalability
+Easier frontend integration
+Better user experience through historical month analysis
+
 ## Database Schema
 ```
 users     — id, email, password

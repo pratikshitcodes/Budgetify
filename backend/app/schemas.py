@@ -1,5 +1,5 @@
 from pydantic import BaseModel,ConfigDict,validator
-from typing import Optional
+from typing import Optional,List,Dict
 from datetime import datetime
 
 class UserCreate(BaseModel):
@@ -87,9 +87,62 @@ class Budget_Response(BaseModel):
     insight:str
 
 class Budget_Update(BaseModel):
-    amount:int
+    amount:float
+    month:int
+    year:int
     @validator('amount')
     def amount_positive(cls,v):
         if v<=0:
             raise ValueError('Budget must be positive')
         return v
+
+
+class MostFrequent(BaseModel):
+    name: str
+    count: int
+    total_spent: float
+class ExpenseInfo(BaseModel):
+    title: str
+    amount: float
+    category: str
+
+
+class CategoryComparison(BaseModel):
+    this: float
+    prev: float
+
+
+class DailyExpense(BaseModel):
+    day: int
+    cumulative: float
+
+class MonthlyAnalysisResponse(BaseModel):
+    this_month_total: float
+    prev_month_total: float
+
+    this_month_count: int
+    prev_month_count: int
+
+    most_frequent_entry: MostFrequent
+
+    highest: Optional[ExpenseInfo]
+
+    recommended_daily_pace: float
+
+    top3_expenses: List[ExpenseInfo]
+
+    category_comparison: Dict[str, CategoryComparison]
+
+    this_month_daily: List[DailyExpense]
+    prev_month_daily: List[DailyExpense]
+
+    projected_daily: float
+    current_avg_pace: float
+    safe_daily: float
+    remaining_days: int
+
+    remaining_budget: float
+    budget: float
+
+    status: str
+    insight: str

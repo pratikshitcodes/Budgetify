@@ -3,35 +3,36 @@ const token = localStorage.getItem("access_token");
 if (!token) {
     window.location.href = "./expense_login.html";
 }
-async function loadCharts(){
-    const month = new Date().getMonth() + 1
-    const year = new Date().getFullYear()
+const selectedMonth=localStorage.getItem("selectedmonth");
+const selectedYear=localStorage.getItem("selectedyear");
 
+async function loadCharts(){
+    const currentRes = await apiFetch(`/budget-status/current?month=${selectedMonth}&year=${selectedYear}`)
+    if(!currentRes.status){
+        window.location.href="./expense_tracker.html";
+        return ;
+    }
     // Expenses fetch karo
-    const response = await apiFetch(`/expenses/chart-data?month=${month}&year=${year}`)
+    const response = await apiFetch(`/expenses/chart-data?month=${selectedMonth}&year=${selectedYear}`)
     const expenses = await response.json()
     renderChart(expenses)
 
     // Budget check karo — same logic as dashboard
-    const currentRes = await apiFetch("/budget-status/current")
     const currentData = await currentRes.json()
-
-    let amount = currentData.amount
-    if(!amount){
-        amount = parseFloat(prompt("Enter your monthly budget (₹):"))
-        if(!amount || isNaN(amount)) return
+    if(!currentData){
+        window.location.href="./expense_tracker.html"
     }
+    let amount = currentData.amount
 
     // Doughnut chart ke liye budget analysis call karo
-    const budgetRes = await apiFetch("/budget-status/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount, month, year })
-    })
+    const budgetRes = await apiFetch(`/budget-status/analytics?month=${selectedMonth}&year=${selectedYear}`)
+
     const budgetData = await budgetRes.json()
     renderBudgetChart(budgetData.total_spent, budgetData.remaining>0?budgetData.remaining:0)
+
     const parts = budgetData.insight.split('TIP:')
     document.getElementById("insightText").textContent = parts[0].replace('INSIGHT:', '').trim()
+
     document.getElementById("insightTip").textContent = parts[1]?.trim() || ''
 }
 loadCharts()

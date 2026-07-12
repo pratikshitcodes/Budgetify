@@ -79,22 +79,29 @@ def update(id:int,
 def get_chart_data(db: DbSession, current_user: CurrentUser,
                    month: int = None, year: int = None):
     
-    if month and year:
-        start = datetime(year, month, 1)
-        end = datetime(year+1, 1, 1) if month == 12 else datetime(year, month+1, 1)
-        expenses = db.query(models.Expense).filter(
+    start = datetime(year, month, 1)
+    end = datetime(year+1, 1, 1) if month == 12 else datetime(year, month+1, 1)
+    expenses = db.query(models.Expense).filter(
             current_user.id==models.Expense.owner_id,
             models.Expense.created_at >= start,
             models.Expense.created_at < end
         ).all()
     
     return expenses
-@budget_router.get('/monthly-stats')
+
+@budget_router.get('/monthly-stats',response_model=schemas.MonthlyAnalysisResponse)
 def analyse_monthly_expenses(
         db:DbSession,
         current_user:CurrentUser,
         month:Optional[int]=None,
         year:Optional[int]=None):
+    budget=db.query(models.Budget).filter(
+        models.Budget.user_id==current_user.id,
+        models.Budget.month==month,
+        models.Budget.year==year
+    ).first()
+    if budget is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"Budget Is Not Initialised For This Month...")
     
     this_month_total=calculate_expense(db,month,year,current_user.id)
 
@@ -143,18 +150,17 @@ def analyse_monthly_expenses(
 
     days_in_month=calendar.monthrange(year,month)[1]
     today=datetime.now()
-    days_passed=today.day
+    if month == today.month and year == today.year:
+        days_passed = today.day
+    else:
+        days_passed = calendar.monthrange(year, month)[1]
     days_remaining=days_in_month-days_passed
 
-    projected_daily=avg*days_in_month
+    projected_daily=Decimal(avg*days_in_month)
 
     current_avg_pace=float(this_month_total)/days_passed if days_passed>0 else 0
 
-    budget=db.query(models.Budget).filter(
-        models.Budget.user_id==current_user.id,
-        models.Budget.month==month,
-        models.Budget.year==year
-    ).first()
+    
 
     remaining_budget=budget.amount-Decimal(this_month_total)
     safe_daily=(Decimal(budget.amount)-Decimal(this_month_total))/Decimal(days_remaining) if days_remaining>0 else 0
@@ -165,28 +171,25 @@ def analyse_monthly_expenses(
     else:
         day_until_budget_exhausted=None
     message=None
-    status=None
+    spending_status=None
     if(safe_daily>=avg):
-        status="Safe"
+        spending_status="Safe"
         message = f"Great job! You're comfortably within your budget. Your recommended daily spending limit is ₹{safe_daily:.2f} for the rest of the month."
     
     elif(0<safe_daily<avg):
-        status="Be cautious"
+        spending_status="Be cautious"
         if day_until_budget_exhausted is not None and day_until_budget_exhausted < days_remaining:
             message = f"At your current spending pace, your budget may be exhausted in about {day_until_budget_exhausted} days."
         else:
             message = "You're still within budget, but your remaining daily spending limit is getting lower. Spend wisely."
     else:
-        status="Warning"
+        spending_status="Warning"
         message="You have already exceeded your monthly budget. Any further spending will be above your planned budget."
-    insight_message=insight_logic_this_prev_month(status,this_month_total,projected_daily,current_avg_pace,safe_daily,days_remaining,remaining_budget,float(budget.amount),message)
+    insight_message=insight_logic_this_prev_month(spending_status,this_month_total,projected_daily,current_avg_pace,safe_daily,days_remaining,remaining_budget,float(budget.amount),message)
 
     return {
         "this_month_total":this_month_total,
         "prev_month_total":prev_month_total,
-
-        "this_month_expenses":this_month_expenses,
-        "prev_month_expenses":prev_month_expenses,
 
         "this_month_count":this_month_count,
         "prev_month_count":prev_month_count,
@@ -210,36 +213,20 @@ def analyse_monthly_expenses(
 
         "remaining_budget":remaining_budget,
         "budget":float(budget.amount),
-        "status":status,
-        "insight":insight_message,
+        "status":spending_status,
+        "insight":insight_message
     }
 
 
-
-@budget_router.post('/',response_model=schemas.Budget_Response)
-def analyse_budget(budget_details:schemas.Budget_Create,
-                  db:DbSession,
-                  current_user:CurrentUser):
-    amount=budget_details.amount
-    month=budget_details.month
-    year=budget_details.year
-
-    """checks whether the month is valid or not"""
-    if((month<=0 or month>12) or(year<2000 or year>2100)):
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,detail=f"Enter Valid Details")
-    
-
-    is_budget_exist=db.query(models.Budget).filter(models.Budget.user_id==current_user.id,
+@budget_router.get("/analytics",response_model=schemas.Budget_Response)
+def analytics(db:DbSession,
+              current_user:CurrentUser,
+              month:int,
+              year:int):
+    budget=db.query(models.Budget).filter(models.Budget.user_id==current_user.id,
      models.Budget.month==month,
      models.Budget.year==year).first()
-    
-    
-    if is_budget_exist is None:
-        new_budget=models.Budget(amount=amount,month=month,year=year,user_id=current_user.id)
-        db.add(new_budget)
-    else:
-        is_budget_exist.amount=amount
-    db.commit()
+    amount=budget.amount
 
     """Calculation Of Monthly Expenses"""
     total_expenses=calculate_expense(db,month,year,current_user.id)
@@ -310,33 +297,61 @@ def analyse_budget(budget_details:schemas.Budget_Create,
         
         "remaining": float(remaining),
         "insight": insight
-}
+    }
+
+@budget_router.post('/')
+def create_budget(budget_details:schemas.Budget_Create,
+                  db:DbSession,
+                  current_user:CurrentUser):
+    
+    amount=budget_details.amount
+    month=budget_details.month
+    year=budget_details.year
+
+    """checks whether the month is valid or not"""
+    if((month<=0 or month>12) or(year<2000 or year>2100)):
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,detail=f"Enter Valid Details")
+    
+
+    is_budget_exist=db.query(models.Budget).filter(models.Budget.user_id==current_user.id,
+     models.Budget.month==month,
+     models.Budget.year==year).first()
+    
+    
+    if is_budget_exist is None:
+        new_budget=models.Budget(amount=amount,month=month,year=year,user_id=current_user.id)
+        db.add(new_budget)
+
+    db.commit()
+    return {"message":"Budget Created Successfully!!!"}
 
 @budget_router.get('/current')
-def get_current_budget(db:DbSession,current_user:CurrentUser):
-    today=datetime.now()
+def get_current_budget(
+    db:DbSession,
+    current_user:CurrentUser,
+    month:int,
+    year:int):
     budget=db.query(models.Budget).filter(
         models.Budget.user_id==current_user.id,
-        models.Budget.month==today.month,
-        models.Budget.year==today.year
+        models.Budget.month==month,
+        models.Budget.year==year
     ).first()
     if budget is None:
-        return {"amount":None}
-    return {"amount":budget.amount}
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"Budget Is Not Initialised For This Month...")
+    else:
+        return {"amount":budget.amount}
 
 @budget_router.put('/')
 def update_budget(
     updated_details:schemas.Budget_Update,
     db:DbSession,
-    current_user:CurrentUser,
-    month:int,
-    year:int):
+    current_user:CurrentUser):
     
     
     budget_query=db.query(models.Budget).filter(
         models.Budget.user_id==current_user.id,
-        models.Budget.month==month,
-        models.Budget.year==year
+        models.Budget.month==updated_details.month,
+        models.Budget.year==updated_details.year
     )
     budget=budget_query.first()
     if budget is None:
