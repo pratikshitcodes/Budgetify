@@ -100,6 +100,9 @@ def analyse_monthly_expenses(
         models.Budget.month==month,
         models.Budget.year==year
     ).first()
+    today=datetime.now()
+    current_month=today.month
+    current_year=today.year
     if budget is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"Budget Is Not Initialised For This Month...")
     
@@ -170,22 +173,76 @@ def analyse_monthly_expenses(
         day_until_budget_exhausted=round(float(remaining_budget)/current_avg_pace)
     else:
         day_until_budget_exhausted=None
+
+    weekend_total = 0
+    weekday_total = 0
+
+    for e in this_month_expenses:
+        # Monday=0 ... Sunday=6
+        if e.created_at.weekday() >= 5:
+            weekend_total += float(e.amount)
+        else:
+            weekday_total += float(e.amount)
+    
+    threshold = 10000
+
+    high_value = [
+        e for e in this_month_expenses
+        if float(e.amount) >= threshold
+    ]
+
+    max_category = None
+    max_change = float("-inf")
+
+    for category, values in category_comparison.items():
+        prev = values["prev"]
+        curr = values["this"]
+
+        if prev == 0:
+            continue
+
+        percent = ((curr - prev) / prev) * 100
+
+        if percent > max_change:
+            max_change = percent
+            max_category = category
+
+    spent_days = set()
+
+    for e in this_month_expenses:
+        spent_days.add(e.created_at.day)
+
+    days_in_month = calendar.monthrange(year, month)[1]
+
+    no_spend_days = days_in_month - len(spent_days)
     message=None
     spending_status=None
-    if(safe_daily>=avg):
-        spending_status="Safe"
-        message = f"Great job! You're comfortably within your budget. Your recommended daily spending limit is ₹{safe_daily:.2f} for the rest of the month."
-    
-    elif(0<safe_daily<avg):
-        spending_status="Be cautious"
-        if day_until_budget_exhausted is not None and day_until_budget_exhausted < days_remaining:
-            message = f"At your current spending pace, your budget may be exhausted in about {day_until_budget_exhausted} days."
+    if month==current_month and year==current_year:
+        if(safe_daily>=avg):
+            spending_status="Safe"
+            message = f"Great job! You're comfortably within your budget. Your recommended daily spending limit is ₹{safe_daily:.2f} for the rest of the month."
+        
+        elif(0<safe_daily<avg):
+            spending_status="Be cautious"
+            if day_until_budget_exhausted is not None and day_until_budget_exhausted < days_remaining:
+                message = f"At your current spending pace, your budget may be exhausted in about {day_until_budget_exhausted} days."
+            else:
+                message = "You're still within budget, but your remaining daily spending limit is getting lower. Spend wisely."
         else:
-            message = "You're still within budget, but your remaining daily spending limit is getting lower. Spend wisely."
+            spending_status="Warning"
+            message="You have already exceeded your monthly budget. Any further spending will be above your planned budget."
+        insight_message=insight_logic_this_prev_month(spending_status,this_month_total,projected_daily,current_avg_pace,safe_daily,days_remaining,remaining_budget,float(budget.amount),message)
     else:
-        spending_status="Warning"
-        message="You have already exceeded your monthly budget. Any further spending will be above your planned budget."
-    insight_message=insight_logic_this_prev_month(spending_status,this_month_total,projected_daily,current_avg_pace,safe_daily,days_remaining,remaining_budget,float(budget.amount),message)
+        if(remaining_budget>0):
+            spending_status="Excellent Budget Control"
+            message=f"Did pretty well this month Mate!!! ₹{remaining_budget:.2f}"
+        elif(remaining_budget==0):
+            spending_status="Budget Fully Utilized"
+            message=f"You utilized your entire monthly budget."
+        else:
+            spending_status="Overspent"
+            message=f"You overspent by {remaining_budget:.2f}"
+        insight_message=insight_logic_this_prev_month(spending_status,this_month_total,projected_daily,current_avg_pace,0,days_remaining,remaining_budget,float(budget.amount),message)
 
     return {
         "this_month_total":this_month_total,
@@ -206,10 +263,22 @@ def analyse_monthly_expenses(
         "this_month_daily":this_graph,
         "prev_month_daily":prev_graph,
 
-        "projected_daily":projected_daily,
-        "current_avg_pace":current_avg_pace,
+        "projected_daily":round(projected_daily,2),
+        "current_avg_pace":round(current_avg_pace,2),
         "safe_daily":safe_daily,
         "remaining_days":days_remaining,
+
+        "weekend_spending": weekend_total,
+        "weekday_spending": weekday_total,
+
+        "high_value_count": len(high_value),
+        "threshold": threshold,
+
+        "biggest_increase":None
+        if max_change<=0 else { "category": max_category,
+        "percentage": round(max_change, 2)},
+
+        "no_spend_days": no_spend_days,
 
         "remaining_budget":remaining_budget,
         "budget":float(budget.amount),
@@ -245,13 +314,13 @@ def analytics(db:DbSession,
 
     previous_month_spent=0
     if month==1:
-        previous_month_spent=calculate_expense(db,12,year-1,current_user.id)
+        previous_month_spent=float(calculate_expense(db,12,year-1,current_user.id))
     else:
-        previous_month_spent=calculate_expense(db,month-1,year,current_user.id)
+        previous_month_spent=float(calculate_expense(db,month-1,year,current_user.id))
     if previous_month_spent==0:
         percentage_change=None
     else:
-        percentage_change=((total_expenses-previous_month_spent)/previous_month_spent)*100
+        percentage_change=Decimal(((float(total_expenses)-previous_month_spent)/previous_month_spent)*100)
 
     start=datetime(year,month,1)
     if month==12:
@@ -284,18 +353,18 @@ def analytics(db:DbSession,
     return {
 
         "status": budget_status,
-        "budget": float(amount),
+        "budget": amount,
 
         "total_spent": float(total_expenses),
-        "previous_month_spent": float(previous_month_spent),
+        "previous_month_spent":round( float(previous_month_spent),2),
 
-        "percentage_change": float(percentage_change) if percentage_change else None,
+        "percentage_change": round(float(percentage_change),2) if percentage_change else None,
         "change_type": change_type,
 
         "top_category": top_category_name,
-        "top_category_spent": float(top_category_spent),
+        "top_category_spent": round(float(top_category_spent),2),
         
-        "remaining": float(remaining),
+        "remaining": round(float(remaining),2),
         "insight": insight
     }
 

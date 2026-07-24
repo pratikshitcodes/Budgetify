@@ -116,6 +116,9 @@ class DailyExpense(BaseModel):
     day: int
     cumulative: float
 
+class BiggestIncrease(BaseModel):
+    category: str
+    percentage: float
 class MonthlyAnalysisResponse(BaseModel):
     this_month_total: float
     prev_month_total: float
@@ -141,6 +144,14 @@ class MonthlyAnalysisResponse(BaseModel):
     safe_daily: float
     remaining_days: int
 
+    weekend_spending:float
+    weekday_spending:float
+
+    high_value_count:int
+    threshold:float
+    biggest_increase:BiggestIncrease|None=None
+    
+    no_spend_days:int
     remaining_budget: float
     budget: float
 
