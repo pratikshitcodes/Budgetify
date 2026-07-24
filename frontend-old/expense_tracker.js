@@ -44,7 +44,7 @@ yearSelect.value = currentYear;
 let selectedMonth = currentMonth;
 let selectedYear = currentYear;
 localStorage.setItem("selectedmonth",selectedMonth);
-localStorage.setItem("selectedyear",selectedYear);
+localStorage.setItem("selectedYear",selectedYear);
 
 document.getElementById("currentMonth").textContent =
     `${monthNames[selectedMonth-1]} ${selectedYear}`;
@@ -294,7 +294,7 @@ budgetModal.addEventListener("click",(e)=>{
 
 let budgetExists = false;
 let currentBudget=0;
-function saveBudget(method){
+function saveBudget(){
     document.getElementById("saveBudget")
     .addEventListener("click",async()=>{
         console.log("Save button clicked");

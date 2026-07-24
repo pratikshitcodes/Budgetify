@@ -161,6 +161,13 @@ Improved scalability
 Easier frontend integration
 Better user experience through historical month analysis
 
+Day 21
+
+1.Fixed the budget update bug where the user had to click twice to update the budget.
+
+2.Fixed the month synchronization bug, ensuring Analytics and Monthly pages always load the currently selected month's data.
+
+3.Fixed the safe daily spending logic by showing daily spending recommendations only for the current month and remaining budget insights for past months.
 ## Database Schema
 ```
 users     — id, email, password

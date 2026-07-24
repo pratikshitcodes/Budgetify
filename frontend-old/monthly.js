@@ -1,9 +1,10 @@
 const token = localStorage.getItem("access_token")
 if (!token) window.location.href = "./expense_login.html"
 
-const selectedMonth =Number(localStorage.getItem("selectedmonth")); 
-const selectedYear = Number(localStorage.getItem("selectedyear"));
+const selectedMonth =Number(localStorage.getItem("selectedMonth")); 
+const selectedYear = Number(localStorage.getItem("selectedYear"));
 const prevMonth = Number(selectedMonth === 1 ? 12 : selectedMonth - 1)
+const prevYear=Number(selectedMonth===1?selectedYear-1:selectedYear);
 // Set current month in topbar
 const date =new Date(selectedYear,selectedMonth-1);
 document.getElementById("currentMonth").textContent = date.toLocaleDateString("en-IN",{
@@ -34,10 +35,10 @@ document.querySelector(".log-out-btn").addEventListener("click", () => {
 })
 
 // Load on page start — current vs previous month
-async function loadMonthlyData(m1, y,m2) {
+async function loadMonthlyData(m1, y1,m2,y2) {
     try {
         // Budget
-        const budgetRes = await apiFetch(`/budget-status/current?month=${selectedMonth}&year=${selectedYear}`)
+        const budgetRes = await apiFetch(`/budget-status/current?month=${m1}&year=${y1}`)
         if(budgetRes.status===404){
             window.location.href="./expense_tracker.html";
             return ;
@@ -46,7 +47,7 @@ async function loadMonthlyData(m1, y,m2) {
         const budgetAmount = budgetData.amount;
 
         const statsRes = await apiFetch(
-            `/budget-status/monthly-stats?month=${m1}&year=${y}`
+            `/budget-status/monthly-stats?month=${m1}&year=${y1}`
         );
 
         const stats = await statsRes.json();
@@ -68,7 +69,7 @@ async function loadMonthlyData(m1, y,m2) {
         card.classList.remove("warning", "be_cautious", "safe");
         status.classList.remove("warning", "caution", "safe");
 
-        if (stats.status === "Warning") {
+        if (stats.status === "Warning"||stats.status==="Overspent") {
             card.classList.add("warning");
             status.classList.add("warning");
         }
@@ -98,7 +99,6 @@ async function loadMonthlyData(m1, y,m2) {
             else changeCard.classList.remove("danger")
         }
 
-        // Stats — Month 1
         document.getElementById("highest").textContent =
             stats.highest ? `${stats.highest.title} ₹${formatAmount(stats.highest.amount)}` : "—"
         document.getElementById("average").textContent = `₹${formatAmount(stats.recommended_daily_pace)}`
@@ -108,11 +108,20 @@ async function loadMonthlyData(m1, y,m2) {
             top
                 ? `${top.name} (${top.count}×)`
                 : "—";
-        document.getElementById("weekday").textContent = `₹${formatAmount(stats.weekday_total)}`
-        document.getElementById("weekend").textContent = `₹${formatAmount(stats.weekend_total)}`
-        document.getElementById("firstHalf").textContent = `₹${formatAmount(stats.first_half)}`
-        document.getElementById("secondHalf").textContent = `₹${formatAmount(stats.second_half)}`
+        document.getElementById("weekday").textContent = `₹${formatAmount(stats.weekday_spending)}`
+        document.getElementById("weekend").textContent = `₹${formatAmount(stats.weekend_spending)}`
 
+        const biggest_increase_vis=document.getElementById("biggestIncrease")
+        if(!stats.biggest_increase){
+            biggest_increase_vis.textContent="No category increased compared to last month."
+        }
+        else{
+            biggest_increase_vis.textContent = `${stats.biggest_increase.category} : ${formatAmount(stats.biggest_increase.percentage)}%`
+        }
+        document.getElementById("highvalue").textContent = `${stats.high_value_count} purchases over ₹${formatAmount(stats.threshold)
+
+        }`
+        document.getElementById("no_spend").textContent=`${stats.no_spend_days}`
         // Top 3
         const top3 = document.getElementById("top3Container")
         top3.innerHTML = ""
@@ -148,6 +157,7 @@ async function loadMonthlyData(m1, y,m2) {
         console.error("Error:", err)
     }
 }
+loadMonthlyData(selectedMonth, selectedYear, prevMonth)
 function renderWormChart(thisMonth, prevMonth, budget, m1, m2) {
     if (wormChartInstance) wormChartInstance.destroy()
 
@@ -361,6 +371,4 @@ document.getElementById("compareBtn").addEventListener("click", () => {
 document.getElementById("month1").value = selectedMonth
 document.getElementById("year1").value = selectedYear
 document.getElementById("month2").value = prevMonth
-
-loadMonthlyData(selectedMonth, selectedYear, prevMonth)
-
+document.getElementById("year2").value=prevYear

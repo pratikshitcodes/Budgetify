@@ -3,8 +3,8 @@ const token = localStorage.getItem("access_token");
 if (!token) {
     window.location.href = "./expense_login.html";
 }
-const selectedMonth=localStorage.getItem("selectedmonth");
-const selectedYear=localStorage.getItem("selectedyear");
+const selectedMonth=localStorage.getItem("selectedMonth");
+const selectedYear=localStorage.getItem("selectedYear");
 
 async function loadCharts(){
     const currentRes = await apiFetch(`/budget-status/current?month=${selectedMonth}&year=${selectedYear}`)
