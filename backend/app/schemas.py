@@ -2,6 +2,22 @@ from pydantic import BaseModel,ConfigDict,validator
 from typing import Optional,List,Dict
 from datetime import datetime
 
+from pydantic import BaseModel, ConfigDict, validator
+from typing import Optional, List, Dict, Any
+from datetime import datetime
+
+class ChatMessage(BaseModel):
+    role: str
+    content: str
+
+class ChatRequest(BaseModel):
+    message: str
+    history: Optional[List[ChatMessage]] = []
+
+class ChatResponse(BaseModel):
+    reply: str
+    report: Optional[Dict[str, Any]] = None
+    comparison: Optional[Dict[str, Any]] = None
 class UserCreate(BaseModel):
     email:str
     password:str
@@ -157,3 +173,90 @@ class MonthlyAnalysisResponse(BaseModel):
 
     status: str
     insight: str
+
+class GroupCreate(BaseModel):
+    name: str
+    members: List[str]
+
+    @validator('name')
+    def name_not_empty(cls, v):
+        if not v.strip():
+            raise ValueError('Group name cannot be blank')
+        return v.strip()
+
+class GroupMemberCreate(BaseModel):
+    name: str
+
+class GroupExpenseCreate(BaseModel):
+    title: str
+    amount: float
+    paid_by_member_id: int
+    split_member_ids: Optional[List[int]] = None
+
+    @validator('amount')
+    def amount_positive(cls, v):
+        if v <= 0:
+            raise ValueError('Amount must be positive')
+        return v
+
+class GroupMemberResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    name: str
+
+class GroupListItem(BaseModel):
+    id: int
+    name: str
+    created_at: datetime
+
+class GroupBalance(BaseModel):
+    member_id: int
+    name: str
+    paid: float
+    owed: float
+    net: float
+
+class GroupSettlement(BaseModel):
+    from_member_id: int
+    from_name: str
+    to_member_id: int
+    to_name: str
+    amount: float
+
+class GroupExpenseSplitResponse(BaseModel):
+    member_id: int
+    member_name: str
+    share_amount: float
+
+class GroupExpenseResponse(BaseModel):
+    id: int
+    title: str
+    amount: float
+    paid_by: str
+    paid_by_member_id: int
+    created_at: datetime
+    splits: List[GroupExpenseSplitResponse]
+
+class GroupResponse(BaseModel):
+    id: int
+    name: str
+    created_at: datetime
+    members: List[GroupMemberResponse]
+    expenses: List[GroupExpenseResponse]
+    balances: List[GroupBalance]
+    settlements: List[GroupSettlement]
+
+class BattleRound(BaseModel):
+    category: str
+    month1_spending: float
+    month2_spending: float
+    difference: float
+    winner: str
+    point_awarded_to: Optional[str] = None
+
+class MonthBattleResponse(BaseModel):
+    month1: Dict[str, Any]
+    month2: Dict[str, Any]
+    rounds: List[BattleRound]
+    total_rounds: int
+    overall_winner: str

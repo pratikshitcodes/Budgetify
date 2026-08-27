@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Budgetify - Split Bills</title>
+    <link rel="stylesheet" href="./groups.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="./chat.css">
+</head>
+<body>
+<div class="shell">
+    <div class="sidebar">
+        <div class="logo">
+            <div class="logo-mark"><i class="ti ti-currency-rupee"></i></div>
+            <span class="logo-text">Budgetify</span>
+        </div>
+        <span class="nav-label">Menu</span>
+        <button class="sidebar-btn" data-nav="dashboard"><i class="ti ti-layout-dashboard"></i><span>Dashboard</span></button>
+        <button class="sidebar-btn" data-nav="analytics"><i class="ti ti-chart-pie"></i><span>Analytics</span></button>
+        <button class="sidebar-btn" data-nav="monthly"><i class="ti ti-calendar-stats"></i><span>Monthly</span></button>
+        <button class="sidebar-btn" data-nav="battle"><i class="ti ti-swords"></i><span>Month Battle</span></button>
+        <button class="sidebar-btn active" data-nav="groups"><i class="ti ti-users-group"></i><span>Split Bills</span></button>
+        <button class="sidebar-btn" data-nav="records"><i class="ti ti-receipt"></i><span>Records</span></button>
+        <span class="nav-label">Account</span>
+        <button class="sidebar-btn"><i class="ti ti-settings"></i><span>Settings</span></button>
+        <div class="user-section">
+            <div class="user-avatar">U</div>
+            <div class="user-info">
+                <div class="user-name">My Account</div>
+                <div class="user-email">budgetify</div>
+            </div>
+            <button class="log-out-btn" title="Logout"><i class="ti ti-logout"></i></button>
+        </div>
+    </div>
+
+    <div class="main">
+        <div class="topbar">
+            <div class="topbar-left">
+                <h1>Split Bills</h1>
+                <p>Create groups, track shared expenses, and settle up like Splitwise</p>
+            </div>
+            <div class="topbar-right">
+                <button class="primary-btn" id="openCreateGroupBtn"><i class="ti ti-plus"></i> New Group</button>
+            </div>
+        </div>
+
+        <div class="groups-layout">
+            <div class="groups-list-panel">
+                <div class="panel-title">Your Groups</div>
+                <div id="groupsList" class="groups-list">
+                    <div class="empty-state">No groups yet — create one to get started</div>
+                </div>
+            </div>
+
+            <div class="group-detail-panel" id="groupDetailPanel">
+                <div class="empty-detail">
+                    <i class="ti ti-users-group"></i>
+                    <p>Select a group or create a new one</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Group Modal -->
+<div class="modal-overlay" id="createGroupModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h2>Create Group</h2>
+            <button class="close-btn" id="closeCreateGroupModal">&times;</button>
+        </div>
+        <div class="input-group">
+            <label>Group Name</label>
+            <input type="text" id="groupNameInput" placeholder="e.g. Flatmates, Trip to Goa">
+        </div>
+        <div class="input-group">
+            <label>Members (one per line, min 2)</label>
+            <textarea id="groupMembersInput" rows="5" placeholder="You&#10;Rahul&#10;Priya"></textarea>
+        </div>
+        <div class="modal-actions">
+            <button class="cancel-btn" id="cancelCreateGroup">Cancel</button>
+            <button class="save-btn" id="saveCreateGroup">Create Group</button>
+        </div>
+    </div>
+</div>
+
+<!-- Add Expense Modal -->
+<div class="modal-overlay" id="addExpenseModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h2>Add Shared Expense</h2>
+            <button class="close-btn" id="closeExpenseModal">&times;</button>
+        </div>
+        <div class="input-group">
+            <label>Title</label>
+            <input type="text" id="expenseTitleInput" placeholder="Dinner, Rent, Cab…">
+        </div>
+        <div class="input-group">
+            <label>Amount (₹)</label>
+            <input type="number" id="expenseAmountInput" min="0.01" step="0.01" placeholder="0.00">
+        </div>
+        <div class="input-group">
+            <label>Paid By</label>
+            <select id="paidBySelect"></select>
+        </div>
+        <div class="input-group">
+            <label>Split Equally Between</label>
+            <div id="splitMembersList" class="split-checkboxes"></div>
+        </div>
+        <div class="modal-actions">
+            <button class="cancel-btn" id="cancelExpense">Cancel</button>
+            <button class="save-btn" id="saveExpense">Add Expense</button>
+        </div>
+    </div>
+</div>
+
+<script src="./api.js"></script>
+<script src="./nav.js"></script>
+<script src="./groups.js"></script>
+<script src="./chat.js"></script>
+</body>
+</html>

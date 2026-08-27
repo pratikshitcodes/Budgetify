@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="./chat.css">
 </head>
 <body>
 <div class="shell">
@@ -21,6 +22,8 @@
         <button class="sidebar-btn" id="navDashboard"><i class="ti ti-layout-dashboard"></i><span>Dashboard</span></button>
         <button class="sidebar-btn" id="navAnalytics"><i class="ti ti-chart-pie"></i><span>Analytics</span></button>
         <button class="sidebar-btn active" id="navMonthly"><i class="ti ti-calendar-stats"></i><span>Monthly</span></button>
+        <button class="sidebar-btn" id="navBattle"><i class="ti ti-swords"></i><span>Month Battle</span></button>
+        <button class="sidebar-btn" id="navGroups"><i class="ti ti-users-group"></i><span>Split Bills</span></button>
         <button class="sidebar-btn" id="navRecords"><i class="ti ti-receipt"></i><span>Records</span></button>
         <span class="nav-label">Account</span>
         <button class="sidebar-btn"><i class="ti ti-settings"></i><span>Settings</span></button>
@@ -39,7 +42,7 @@
         <div class="topbar">
             <div class="topbar-left">
                 <h1>Monthly Overview</h1>
-                <p id="comparisonLabel">Current month vs previous month</p>
+                <p id="comparisonLabel">Select any two months to compare</p>
             </div>
             <div class="topbar-right">
                 <div class="month-pill"><i class="ti ti-calendar"></i><span id="currentMonth"></span></div>
@@ -168,6 +171,8 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/3.0.1/chartjs-plugin-annotation.min.js"></script>
 <script src="./api.js"></script>
+<script src="./nav.js"></script>
 <script src="./monthly.js"></script>
+    <script src="./chat.js"></script>
 </body>
 </html>

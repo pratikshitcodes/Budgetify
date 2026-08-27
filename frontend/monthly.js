@@ -26,6 +26,9 @@ let wormChartInstance = null
 // Navigation
 document.getElementById("navDashboard").addEventListener("click", () => window.location.href = "./expense_tracker.html")
 document.getElementById("navAnalytics").addEventListener("click", () => window.location.href = "./analytics.html")
+document.getElementById("navBattle").addEventListener("click", () => window.location.href = "./battle.html")
+document.getElementById("navGroups").addEventListener("click", () => window.location.href = "./groups.html")
+document.getElementById("navRecords").addEventListener("click", () => window.location.href = "./expense_tracker.html")
 
 // Logout
 document.querySelector(".log-out-btn").addEventListener("click", () => {
@@ -34,9 +37,13 @@ document.querySelector(".log-out-btn").addEventListener("click", () => {
     window.location.href = "./expense_login.html"
 })
 
-// Load on page start — current vs previous month
-async function loadMonthlyData(m1, y1,m2,y2) {
+// Load on page start — user-selected months
+async function loadMonthlyData(m1, y1, m2, y2) {
     try {
+        document.getElementById("m1Label").textContent = `${monthNames[m1]} ${y1}`
+        document.getElementById("m2Label").textContent = `${monthNames[m2]} ${y2}`
+        document.getElementById("comparisonLabel").textContent = `${monthNames[m1]} ${y1} vs ${monthNames[m2]} ${y2}`
+
         // Budget
         const budgetRes = await apiFetch(`/budget-status/current?month=${m1}&year=${y1}`)
         if(budgetRes.status===404){
@@ -47,7 +54,7 @@ async function loadMonthlyData(m1, y1,m2,y2) {
         const budgetAmount = budgetData.amount;
 
         const statsRes = await apiFetch(
-            `/budget-status/monthly-stats?month=${m1}&year=${y1}`
+            `/budget-status/monthly-stats?month=${m1}&year=${y1}&compare_month=${m2}&compare_year=${y2}`
         );
 
         const stats = await statsRes.json();
@@ -94,7 +101,7 @@ async function loadMonthlyData(m1, y1,m2,y2) {
         if (pct !== null) {
             const isIncrease = change > 0
             document.getElementById("changeVal").textContent = `${isIncrease ? "+" : ""}${pct}%`
-            document.getElementById("changeType").textContent = isIncrease ? "Higher than last month ↑" : "Lower than last month ↓"
+            document.getElementById("changeType").textContent = isIncrease ? "Higher than compared month ↑" : "Lower than compared month ↓"
             if (isIncrease) changeCard.classList.add("danger")
             else changeCard.classList.remove("danger")
         }
@@ -113,7 +120,7 @@ async function loadMonthlyData(m1, y1,m2,y2) {
 
         const biggest_increase_vis=document.getElementById("biggestIncrease")
         if(!stats.biggest_increase){
-            biggest_increase_vis.textContent="No category increased compared to last month."
+            biggest_increase_vis.textContent="No category increased compared to the other month."
         }
         else{
             biggest_increase_vis.textContent = `${stats.biggest_increase.category} : ${formatAmount(stats.biggest_increase.percentage)}%`
@@ -157,7 +164,7 @@ async function loadMonthlyData(m1, y1,m2,y2) {
         console.error("Error:", err)
     }
 }
-loadMonthlyData(selectedMonth, selectedYear, prevMonth)
+loadMonthlyData(selectedMonth, selectedYear, prevMonth, prevYear)
 function renderWormChart(thisMonth, prevMonth, budget, m1, m2) {
     if (wormChartInstance) wormChartInstance.destroy()
 
@@ -363,7 +370,11 @@ document.getElementById("compareBtn").addEventListener("click", () => {
     const y1 = parseInt(document.getElementById("year1").value)
     const m2 = parseInt(document.getElementById("month2").value)
     const y2 = parseInt(document.getElementById("year2").value)
-    loadMonthlyData(m1, y1, m2,y2)
+    if (m1 === m2 && y1 === y2) {
+        alert("Pick two different months to compare.")
+        return
+    }
+    loadMonthlyData(m1, y1, m2, y2)
 })
 
 // Default load — current vs previous

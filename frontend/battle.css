@@ -1,0 +1,209 @@
+@import url('./monthly.css');
+
+.scoreboard {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 16px;
+    align-items: center;
+    margin: 24px 0;
+}
+
+.fighter {
+    background: #18181f;
+    border: 1px solid #2a2a35;
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+    transition: all 0.4s ease;
+}
+
+.fighter.champion {
+    border-color: #fbbf24;
+    box-shadow: 0 0 24px rgba(251, 191, 36, 0.25);
+    transform: scale(1.02);
+}
+
+.fighter-label {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 8px;
+}
+
+.fighter-points {
+    font-size: 48px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1;
+}
+
+.fighter-m1 .fighter-points { color: #a78bfa; }
+.fighter-m2 .fighter-points { color: #34d399; }
+
+.fighter-sub {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #666;
+}
+
+.score-vs {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #555;
+}
+
+.sim-controls {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.sim-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border-radius: 10px;
+    border: none;
+    background: linear-gradient(135deg, #7c5cfc, #9333ea);
+    color: #fff;
+    font-family: 'Poppins', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.sim-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.sim-btn.ghost {
+    background: transparent;
+    border: 1px solid #2a2a35;
+    color: #aaa;
+}
+
+.winner-banner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 16px 24px;
+    margin-bottom: 20px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.15), rgba(124, 92, 252, 0.15));
+    border: 1px solid rgba(251, 191, 36, 0.4);
+    color: #fbbf24;
+    font-size: 18px;
+    font-weight: 600;
+    animation: popIn 0.5s ease;
+}
+
+.winner-banner.hidden { display: none; }
+
+.sim-arena {
+    background: #18181f;
+    border: 1px solid #2a2a35;
+    border-radius: 16px;
+    padding: 24px;
+}
+
+.arena-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+}
+
+.arena-sub {
+    font-size: 12px;
+    color: #666;
+    margin: 4px 0 20px;
+}
+
+.rounds-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 520px;
+    overflow-y: auto;
+}
+
+.round-card {
+    border: 1px solid #2a2a35;
+    border-radius: 12px;
+    padding: 16px;
+    background: #13131a;
+    opacity: 0.5;
+    transform: translateY(8px);
+    transition: all 0.4s ease;
+}
+
+.round-card.revealed {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.round-card.m1-win { border-color: rgba(167, 139, 250, 0.5); background: rgba(124, 92, 252, 0.08); }
+.round-card.m2-win { border-color: rgba(52, 211, 153, 0.5); background: rgba(29, 158, 117, 0.08); }
+.round-card.tie-win { border-color: rgba(136, 136, 136, 0.5); }
+
+.round-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.round-num {
+    font-size: 11px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.round-cat {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+}
+
+.round-body {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 12px;
+    align-items: center;
+}
+
+.side-label { font-size: 11px; color: #666; margin-bottom: 4px; }
+.side-amt { font-size: 18px; font-weight: 600; color: #fff; }
+.m1-side .side-amt { color: #a78bfa; }
+.m2-side .side-amt { color: #34d399; text-align: right; }
+.m2-side .side-label { text-align: right; }
+
+.round-vs {
+    font-size: 11px;
+    color: #555;
+    font-weight: 700;
+}
+
+.round-result {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #2a2a35;
+    font-size: 12px;
+    color: #aaa;
+    text-align: center;
+}
+
+.empty-state {
+    text-align: center;
+    color: #555;
+    padding: 40px 20px;
+    font-size: 14px;
+}
+
+@keyframes popIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}

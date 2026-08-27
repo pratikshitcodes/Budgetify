@@ -8,6 +8,7 @@ from .. import models
 from datetime import datetime
 from .. import oauth
 from ..utils import calculate_expense,insight_logic,find_monthly_expenses,day_to_day_expenses,most_frequent_entries,insight_logic_this_prev_month
+from ..services import expense_service
 import calendar
 from decimal import Decimal
 expense_router=APIRouter(
@@ -27,39 +28,18 @@ def get_expenses(db:DbSession,
         limit:int=10,
         skip:int=0):
    
-   query = db.query(models.Expense).filter(models.Expense.owner_id == current_user.id)
-    
-   if month and year:
-        start = datetime(year, month, 1)
-        end = datetime(year+1, 1, 1) if month == 12 else datetime(year, month+1, 1)
-        query = query.filter(
-            models.Expense.created_at >= start,
-            models.Expense.created_at < end
-        )
-    
-   return query.order_by(models.Expense.created_at.desc())\
-        .offset(skip)\
-        .limit(limit)\
-        .all()
+   return expense_service.get_expense(db,current_user,month,year,limit,skip)
+
 
 
 @expense_router.post('/',status_code=status.HTTP_201_CREATED)
 def post_expense(post_details:schemas.ExpenseCreate,db:DbSession, current_user:CurrentUser):
-    new_item=models.Expense(title=post_details.title,amount=post_details.amount,description=post_details.description,owner_id=current_user.id,category=post_details.category)
-    db.add(new_item)
-    db.commit()
-    db.refresh(new_item)
-    return new_item
+    return expense_service.add_expense(post_details.model_dump(),db,current_user)
+
 @expense_router.delete('/{id}')
 def delete_expense(id:int,db:DbSession,
                    current_user:CurrentUser):
-    expense_query=db.query(models.Expense).filter(models.Expense.id==id,models.Expense.owner_id==current_user.id)
-    expense=expense_query.first()
-    if expense is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"Expense not found")
-    
-    expense_query.delete(synchronize_session=False)
-    db.commit()
+    expense_service.delete_expense(id,db,current_user)
     return 
 
 @expense_router.put('/{id}',response_model=schemas.ExpenseResponse)
@@ -94,7 +74,9 @@ def analyse_monthly_expenses(
         db:DbSession,
         current_user:CurrentUser,
         month:Optional[int]=None,
-        year:Optional[int]=None):
+        year:Optional[int]=None,
+        compare_month:Optional[int]=None,
+        compare_year:Optional[int]=None):
     budget=db.query(models.Budget).filter(
         models.Budget.user_id==current_user.id,
         models.Budget.month==month,
@@ -108,11 +90,14 @@ def analyse_monthly_expenses(
     
     this_month_total=calculate_expense(db,month,year,current_user.id)
 
-    prev_month_total=calculate_expense(db,12,year-1,current_user.id) if month==1 else calculate_expense(db,month-1,year,current_user.id)
+    cm = compare_month if compare_month is not None else (12 if month == 1 else month - 1)
+    cy = compare_year if compare_year is not None else (year - 1 if month == 1 else year)
+
+    prev_month_total=calculate_expense(db, cm, cy, current_user.id)
     
     this_month_expenses=find_monthly_expenses(db,month,year,current_user.id)
 
-    prev_month_expenses=find_monthly_expenses(db,12,year-1,current_user.id) if month==1 else find_monthly_expenses(db,month-1,year,current_user.id)
+    prev_month_expenses=find_monthly_expenses(db, cm, cy, current_user.id)
 
     this_month_count=len(this_month_expenses)
     prev_month_count=len(prev_month_expenses)
@@ -149,7 +134,7 @@ def analyse_monthly_expenses(
     most_frequent=most_frequent_entries(db,month,year,current_user.id)
     top3 = sorted(this_month_expenses, key=lambda e: e.amount, reverse=True)[:3]
     this_graph=day_to_day_expenses(db,month,year,current_user.id)
-    prev_graph=day_to_day_expenses(db,month-1,year,current_user.id)
+    prev_graph=day_to_day_expenses(db, cm, cy, current_user.id)
 
     days_in_month=calendar.monthrange(year,month)[1]
     today=datetime.now()

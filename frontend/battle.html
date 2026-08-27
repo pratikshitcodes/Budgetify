@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Budgetify - Month Battle</title>
+    <link rel="stylesheet" href="./battle.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="./chat.css">
+</head>
+<body>
+<div class="shell">
+    <div class="sidebar">
+        <div class="logo">
+            <div class="logo-mark"><i class="ti ti-currency-rupee"></i></div>
+            <span class="logo-text">Budgetify</span>
+        </div>
+        <span class="nav-label">Menu</span>
+        <button class="sidebar-btn" data-nav="dashboard"><i class="ti ti-layout-dashboard"></i><span>Dashboard</span></button>
+        <button class="sidebar-btn" data-nav="analytics"><i class="ti ti-chart-pie"></i><span>Analytics</span></button>
+        <button class="sidebar-btn" data-nav="monthly"><i class="ti ti-calendar-stats"></i><span>Monthly</span></button>
+        <button class="sidebar-btn active" data-nav="battle"><i class="ti ti-swords"></i><span>Month Battle</span></button>
+        <button class="sidebar-btn" data-nav="groups"><i class="ti ti-users-group"></i><span>Split Bills</span></button>
+        <button class="sidebar-btn" data-nav="records"><i class="ti ti-receipt"></i><span>Records</span></button>
+        <span class="nav-label">Account</span>
+        <button class="sidebar-btn"><i class="ti ti-settings"></i><span>Settings</span></button>
+        <div class="user-section">
+            <div class="user-avatar">U</div>
+            <div class="user-info">
+                <div class="user-name">My Account</div>
+                <div class="user-email">budgetify</div>
+            </div>
+            <button class="log-out-btn" title="Logout"><i class="ti ti-logout"></i></button>
+        </div>
+    </div>
+
+    <div class="main">
+        <div class="topbar">
+            <div class="topbar-left">
+                <h1>Month Battle</h1>
+                <p>Pick any two months, then click Load Battle</p>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="month-selector">
+                <div class="sel-tab">
+                    <div class="tab-label">Challenger</div>
+                    <div class="tab-selects">
+                        <select id="month1"></select>
+                        <input type="number" id="year1" min="2000" max="2100">
+                    </div>
+                </div>
+                <div class="vs-center">VS</div>
+                <div class="sel-tab">
+                    <div class="tab-label">Opponent</div>
+                    <div class="tab-selects">
+                        <select id="month2"></select>
+                        <input type="number" id="year2" min="2000" max="2100">
+                    </div>
+                </div>
+                <button class="compare-btn" id="loadBattleBtn"><i class="ti ti-swords"></i> Load Battle</button>
+            </div>
+
+            <div class="scoreboard" id="scoreboard">
+                <div class="fighter fighter-m1" id="fighterM1">
+                    <div class="fighter-label" id="m1Label">Month 1</div>
+                    <div class="fighter-points" id="m1Points">0</div>
+                    <div class="fighter-sub" id="m1Total">₹0 spent</div>
+                </div>
+                <div class="score-vs">POINTS</div>
+                <div class="fighter fighter-m2" id="fighterM2">
+                    <div class="fighter-label" id="m2Label">Month 2</div>
+                    <div class="fighter-points" id="m2Points">0</div>
+                    <div class="fighter-sub" id="m2Total">₹0 spent</div>
+                </div>
+            </div>
+
+            <div class="sim-controls">
+                <button class="sim-btn" id="startSimBtn" disabled><i class="ti ti-player-play"></i> Start Simulation</button>
+                <button class="sim-btn ghost" id="resetSimBtn" disabled><i class="ti ti-refresh"></i> Reset</button>
+            </div>
+
+            <div class="winner-banner hidden" id="winnerBanner">
+                <i class="ti ti-trophy"></i>
+                <span id="winnerText"></span>
+            </div>
+
+            <div class="sim-arena">
+                <div class="arena-title">Category Battles</div>
+                <div class="arena-sub">Watch each category play out — lowest spend wins the round</div>
+                <div id="roundsContainer" class="rounds-container">
+                    <div class="empty-state">Load a battle to see category matchups</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="./api.js"></script>
+<script src="./nav.js"></script>
+<script src="./battle.js"></script>
+<script src="./chat.js"></script>
+</body>
+</html>

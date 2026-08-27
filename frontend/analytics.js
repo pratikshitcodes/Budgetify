@@ -36,24 +36,13 @@ async function loadCharts(){
     document.getElementById("insightTip").textContent = parts[1]?.trim() || ''
 }
 loadCharts()
-document.querySelectorAll(".sidebar-btn")[0]
-    .addEventListener("click", () => {
-        window.location.href = "./expense_tracker.html"
-    })
 
-document.querySelectorAll(".sidebar-btn")[1].classList.add("active")
-document.querySelectorAll(".sidebar-btn")[0].classList.remove("active")
 document.querySelector(".log-out-btn")
     .addEventListener("click", () => {
         localStorage.removeItem("access_token")
         localStorage.removeItem("refresh_token")
         window.location.href = "./expense_login.html"
     });
-//analytics page
-document.querySelectorAll(".sidebar-btn")[1]
-    .addEventListener("click", () => {
-        window.location.href = "./analytics.html"
-    })
 function renderChart(expenses){
     const categories = {}
     expenses.forEach(e => {
@@ -126,7 +115,3 @@ function renderBudgetChart(spent, remaining){
         }
     })
 }
-document.querySelectorAll(".sidebar-btn")[2]
-    .addEventListener("click", () => {
-        window.location.href = "./monthly.html"
-    });

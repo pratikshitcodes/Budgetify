@@ -248,16 +248,6 @@ const formatAmount = (amount) => {
     }
 
 
-//analytics page
-document.querySelectorAll(".sidebar-btn")[1]
-    .addEventListener("click", () => {
-        window.location.href = "./analytics.html"
-    });
-document.querySelectorAll(".sidebar-btn")[2]
-    .addEventListener("click", () => {
-        window.location.href = "./monthly.html"
-    });
-
 const budgetModal=document.getElementById("budgetModal");
 
 
