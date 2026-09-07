@@ -186,3 +186,4 @@ def insight_logic_this_prev_month(status,this_month_total,projected_daily,curren
     )
 
     return response.choices[0].message.content
+

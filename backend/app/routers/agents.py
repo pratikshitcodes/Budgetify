@@ -100,7 +100,7 @@ def get_tools_definition():
             "type": "function",
             "function": {
                 "name": "get_monthly_summary",
-                "description": "Get financial summary for a month",
+                "description": "Get basic financial summary for a month (total, budget, remaining)",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -108,6 +108,35 @@ def get_tools_definition():
                         "year": {"type": "integer"}
                     },
                     "required": ["month", "year"]
+                }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "get_detailed_analysis",
+                "description": "Get a deep financial analysis for a month (projected spending, daily pace, safe daily limit, category breakdowns)",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "month": {"type": "integer"},
+                        "year": {"type": "integer"}
+                    },
+                    "required": ["month", "year"]
+                }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "check_affordability",
+                "description": "Check if a specific expense amount can be afforded based on the current remaining budget",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "amount": {"type": "number"}
+                    },
+                    "required": ["amount"]
                 }
             }
         },
@@ -230,6 +259,12 @@ def run_agent(question: str, history: list, db, current_user):
                 elif tool_name == "get_monthly_summary":
                     result = analytics_service.get_monthly_summary(db, current_user.id, args["month"], args["year"])
                     
+                elif tool_name == "get_detailed_analysis":
+                    result = analytics_service.get_detailed_monthly_analysis(db, current_user.id, args["month"], args["year"])
+
+                elif tool_name == "check_affordability":
+                    result = analytics_service.check_affordability(db, current_user.id, args["amount"])
+
                 elif tool_name == "compare_months":
                     result = analytics_service.compare_months(db, current_user.id, args["month1"], args["year1"], args["month2"], args["year2"])
                     comparison_meta = result
@@ -307,7 +342,7 @@ def run_agent_stream(question: str, history: list, db, current_user):
                 model=model,
                 messages=messages,
                 tools=get_tools_definition(),
-                tool_choice="none",   # force text-only now
+                tool_choice="auto",   # allow tool calls if needed
                 temperature=0,
                 stream=True
             )

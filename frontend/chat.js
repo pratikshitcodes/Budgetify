@@ -639,8 +639,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
 
-            // ── Empty Response ──────────────────────────────────────────────
-
             if (
                 aiBubble.style.display === "none"
             ) {

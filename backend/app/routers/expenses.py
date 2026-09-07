@@ -8,7 +8,7 @@ from .. import models
 from datetime import datetime
 from .. import oauth
 from ..utils import calculate_expense,insight_logic,find_monthly_expenses,day_to_day_expenses,most_frequent_entries,insight_logic_this_prev_month
-from ..services import expense_service
+from ..services import expense_service, analytics_service
 import calendar
 from decimal import Decimal
 expense_router=APIRouter(
@@ -20,6 +20,37 @@ budget_router=APIRouter(
 )
 DbSession=Annotated[Session,Depends(get_db)]
 CurrentUser=Annotated[schemas.Token,Depends(oauth.get_current_user)]
+@expense_router.get('/chart-data')
+def get_chart_data(db: DbSession, current_user: CurrentUser,
+                   month: Optional[int] = None, year: Optional[int] = None):
+    
+    now = datetime.now()
+    if month is None:
+        month = now.month
+    if year is None:
+        year = now.year
+        
+    month = int(month)
+    year = int(year)
+    
+    start = datetime(year, month, 1)
+    end = datetime(year+1, 1, 1) if month == 12 else datetime(year, month+1, 1)
+    expenses = db.query(models.Expense).filter(
+            current_user.id==models.Expense.owner_id,
+            models.Expense.created_at >= start,
+            models.Expense.created_at < end
+        ).all()
+    
+    return expenses
+
+@expense_router.get('/{id}',response_model=schemas.ExpenseResponse)
+def get_expenses(id:int,db:DbSession,
+        current_user:CurrentUser):
+   expense=db.query(models.Expense).filter(models.Expense.id==id,models.Expense.owner_id==current_user.id).first()
+   if expense is None:
+           raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"No such Results found!!!")
+   return expense
+
 @expense_router.get('/',response_model=List[schemas.ExpenseResponse])
 def get_expenses(db:DbSession,
         current_user:CurrentUser,
@@ -55,19 +86,7 @@ def update(id:int,
     db.commit()
     return expense_query.first()
 
-@expense_router.get('/chart-data')
-def get_chart_data(db: DbSession, current_user: CurrentUser,
-                   month: int = None, year: int = None):
-    
-    start = datetime(year, month, 1)
-    end = datetime(year+1, 1, 1) if month == 12 else datetime(year, month+1, 1)
-    expenses = db.query(models.Expense).filter(
-            current_user.id==models.Expense.owner_id,
-            models.Expense.created_at >= start,
-            models.Expense.created_at < end
-        ).all()
-    
-    return expenses
+
 
 @budget_router.get('/monthly-stats',response_model=schemas.MonthlyAnalysisResponse)
 def analyse_monthly_expenses(
@@ -77,199 +96,13 @@ def analyse_monthly_expenses(
         year:Optional[int]=None,
         compare_month:Optional[int]=None,
         compare_year:Optional[int]=None):
-    budget=db.query(models.Budget).filter(
-        models.Budget.user_id==current_user.id,
-        models.Budget.month==month,
-        models.Budget.year==year
-    ).first()
-    today=datetime.now()
-    current_month=today.month
-    current_year=today.year
-    if budget is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f"Budget Is Not Initialised For This Month...")
     
-    this_month_total=calculate_expense(db,month,year,current_user.id)
-
-    cm = compare_month if compare_month is not None else (12 if month == 1 else month - 1)
-    cy = compare_year if compare_year is not None else (year - 1 if month == 1 else year)
-
-    prev_month_total=calculate_expense(db, cm, cy, current_user.id)
+    result = analytics_service.get_detailed_monthly_analysis(db, current_user.id, month, year, compare_month, compare_year)
     
-    this_month_expenses=find_monthly_expenses(db,month,year,current_user.id)
-
-    prev_month_expenses=find_monthly_expenses(db, cm, cy, current_user.id)
-
-    this_month_count=len(this_month_expenses)
-    prev_month_count=len(prev_month_expenses)
-
-    highest=max(this_month_expenses,key=lambda e:e.amount,default=None)
-
+    if result is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Budget Is Not Initialised For This Month...")
     
-    avg=sum(float(e.amount) for e in this_month_expenses)/len(this_month_expenses) if this_month_expenses else 0
-
-    
-
-    highest_data=None
-    if highest:
-        highest_data={
-            "title":highest.title,
-            "category":highest.category,
-            "amount":float(highest.amount)
-        }
-
-    #category comparision list
-    all_categories=set(
-        [e.category for e in this_month_expenses]+
-        [e.category for e in prev_month_expenses]
-    )
-
-    category_comparison={}
-    for cat in all_categories:
-        this_total=sum(float(e.amount) for e in this_month_expenses if e.category==cat)
-        prev_total=sum(float(e.amount) for e in prev_month_expenses if e.category==cat)
-        category_comparison[cat]={
-            "this":this_total,
-            "prev":prev_total
-        }
-    most_frequent=most_frequent_entries(db,month,year,current_user.id)
-    top3 = sorted(this_month_expenses, key=lambda e: e.amount, reverse=True)[:3]
-    this_graph=day_to_day_expenses(db,month,year,current_user.id)
-    prev_graph=day_to_day_expenses(db, cm, cy, current_user.id)
-
-    days_in_month=calendar.monthrange(year,month)[1]
-    today=datetime.now()
-    if month == today.month and year == today.year:
-        days_passed = today.day
-    else:
-        days_passed = calendar.monthrange(year, month)[1]
-    days_remaining=days_in_month-days_passed
-
-    projected_daily=Decimal(avg*days_in_month)
-
-    current_avg_pace=float(this_month_total)/days_passed if days_passed>0 else 0
-
-    
-
-    remaining_budget=budget.amount-Decimal(this_month_total)
-    safe_daily=(Decimal(budget.amount)-Decimal(this_month_total))/Decimal(days_remaining) if days_remaining>0 else 0
-
-
-    if current_avg_pace>0:
-        day_until_budget_exhausted=round(float(remaining_budget)/current_avg_pace)
-    else:
-        day_until_budget_exhausted=None
-
-    weekend_total = 0
-    weekday_total = 0
-
-    for e in this_month_expenses:
-        # Monday=0 ... Sunday=6
-        if e.created_at.weekday() >= 5:
-            weekend_total += float(e.amount)
-        else:
-            weekday_total += float(e.amount)
-    
-    threshold = 10000
-
-    high_value = [
-        e for e in this_month_expenses
-        if float(e.amount) >= threshold
-    ]
-
-    max_category = None
-    max_change = float("-inf")
-
-    for category, values in category_comparison.items():
-        prev = values["prev"]
-        curr = values["this"]
-
-        if prev == 0:
-            continue
-
-        percent = ((curr - prev) / prev) * 100
-
-        if percent > max_change:
-            max_change = percent
-            max_category = category
-
-    spent_days = set()
-
-    for e in this_month_expenses:
-        spent_days.add(e.created_at.day)
-
-    days_in_month = calendar.monthrange(year, month)[1]
-
-    no_spend_days = days_in_month - len(spent_days)
-    message=None
-    spending_status=None
-    if month==current_month and year==current_year:
-        if(safe_daily>=avg):
-            spending_status="Safe"
-            message = f"Great job! You're comfortably within your budget. Your recommended daily spending limit is ₹{safe_daily:.2f} for the rest of the month."
-        
-        elif(0<safe_daily<avg):
-            spending_status="Be cautious"
-            if day_until_budget_exhausted is not None and day_until_budget_exhausted < days_remaining:
-                message = f"At your current spending pace, your budget may be exhausted in about {day_until_budget_exhausted} days."
-            else:
-                message = "You're still within budget, but your remaining daily spending limit is getting lower. Spend wisely."
-        else:
-            spending_status="Warning"
-            message="You have already exceeded your monthly budget. Any further spending will be above your planned budget."
-        insight_message=insight_logic_this_prev_month(spending_status,this_month_total,projected_daily,current_avg_pace,safe_daily,days_remaining,remaining_budget,float(budget.amount),message)
-    else:
-        if(remaining_budget>0):
-            spending_status="Excellent Budget Control"
-            message=f"Did pretty well this month Mate!!! ₹{remaining_budget:.2f}"
-        elif(remaining_budget==0):
-            spending_status="Budget Fully Utilized"
-            message=f"You utilized your entire monthly budget."
-        else:
-            spending_status="Overspent"
-            message=f"You overspent by {remaining_budget:.2f}"
-        insight_message=insight_logic_this_prev_month(spending_status,this_month_total,projected_daily,current_avg_pace,0,days_remaining,remaining_budget,float(budget.amount),message)
-
-    return {
-        "this_month_total":this_month_total,
-        "prev_month_total":prev_month_total,
-
-        "this_month_count":this_month_count,
-        "prev_month_count":prev_month_count,
-
-        "most_frequent_entry":most_frequent,
-        "highest":highest_data,
-        "recommended_daily_pace":avg,
-        "top3_expenses": [
-        {"title": e.title, "amount": float(e.amount), "category": e.category}
-            for e in top3
-        ],
-        "category_comparison":category_comparison,
-
-        "this_month_daily":this_graph,
-        "prev_month_daily":prev_graph,
-
-        "projected_daily":round(projected_daily,2),
-        "current_avg_pace":round(current_avg_pace,2),
-        "safe_daily":safe_daily,
-        "remaining_days":days_remaining,
-
-        "weekend_spending": weekend_total,
-        "weekday_spending": weekday_total,
-
-        "high_value_count": len(high_value),
-        "threshold": threshold,
-
-        "biggest_increase":None
-        if max_change<=0 else { "category": max_category,
-        "percentage": round(max_change, 2)},
-
-        "no_spend_days": no_spend_days,
-
-        "remaining_budget":remaining_budget,
-        "budget":float(budget.amount),
-        "status":spending_status,
-        "insight":insight_message
-    }
+    return result
 
 
 @budget_router.get("/analytics",response_model=schemas.Budget_Response)
@@ -280,6 +113,10 @@ def analytics(db:DbSession,
     budget=db.query(models.Budget).filter(models.Budget.user_id==current_user.id,
      models.Budget.month==month,
      models.Budget.year==year).first()
+    
+    if budget is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Budget Is Not Initialised For This Month...")
+        
     amount=budget.amount
 
     """Calculation Of Monthly Expenses"""
@@ -416,4 +253,5 @@ def update_budget(
         "message":"Budget updated successfully",
         "budget":budget_query.first()
     }
+
 

@@ -203,51 +203,51 @@ body {
 }
 
 .chart-wrap {
-     flex: 1;          
-    min-height: 0;   
-    overflow: hidden;
+    flex: 1;
+    background: #18181f;
+    border: 1px solid #2a2a35;
+    border-radius: 14px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    min-height: 280px;
+    position: relative;
 }
-#spendingChart{
-    max-height: 200px;
+
+#spendingChart, #budgetChart {
+    flex: 1;
+    width: 100% !important;
+    height: 100% !important;
 }
-#budgetChart {
-    max-height: 200px;
-}
+
 .chart-title {
     font-size: 14px;
     font-weight: 600;
     color: #ffffff;
-    margin-bottom: 16px;
+    margin-bottom: 20px;
     font-family: 'Poppins', sans-serif;
 }
 
 .content {
     flex: 1;
     overflow-y: auto;
-    padding: 16px;
+    padding: 24px;
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 24px;
 }
 
 .analytics-layout {
     display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 14px;
-    height: calc(100vh - 120px); 
-}
-
-.insights-col {
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;  
+    grid-template-columns: 1.5fr 1fr;
+    gap: 24px;
+    min-height: 600px;
 }
 
 .charts-col {
     display: flex;
     flex-direction: column;
-    gap: 14px;
-    overflow: hidden;
+    gap: 24px;
 }
 
 .insights-section {
