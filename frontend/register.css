@@ -6,8 +6,7 @@ body{
     display: flex;
     align-items: center;
     justify-content: center;
-    background:linear-gradient(135deg,#8733b4 ,#B892FF
- );
+    background: linear-gradient(135deg, #00d2ff, #3a7bd5);
  flex-wrap: nowrap;
 }
 .register-container{
@@ -16,7 +15,7 @@ body{
     height: 500px;
     width: 650px;
     gap:20px;
-    background-color:  #f8f5ff;;
+    background-color: #ffffff;
     padding: 40px;
     border-radius: 12px;
     flex-wrap: nowrap;
@@ -89,20 +88,20 @@ body{
     align-self: flex-start;
     transform: translate(40px,10px);
     border-radius: 16px;
-     background: linear-gradient(135deg, #9448BC, #B892FF);
+     background: linear-gradient(135deg, #00d2ff, #3a7bd5);
     color: white;
     font-size: 14px;
     width:80%;
     font-family: "Poppins",sans-serif;
-    border: 2px solid rgb(111, 3, 150);
+    border: 2px solid #0099cc;
     padding: 4px 12px 4px 12px;
 }
 .submit-btn:hover{
     transition: 0.3s ease;
-    box-shadow: 0 0 8px rgba(164, 0, 219, 0.744);
+    box-shadow: 0 0 8px rgba(0, 210, 255, 0.6);
 }
 input:focus {
     outline: none;
-    border-color: #9448BC;
-    box-shadow: 0 0 0 3px rgba(148, 72, 188, 0.15);
+    border-color: #00d2ff;
+    box-shadow: 0 0 0 3px rgba(0, 210, 255, 0.2);
 }
