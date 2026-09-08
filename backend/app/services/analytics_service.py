@@ -402,3 +402,67 @@ def check_affordability(db: Session, user_id: int, amount: float):
         "safe_daily_after": float(new_safe_daily),
         "impact_message": impact_message
     }
+
+def get_detailed_analysis(db: Session, user_id: int, month: int, year: int):
+    '''Returns a comprehensive analysis of expenses for a given month and year, including timelines and category breakdowns.'''
+    date_range = calculate_start_end(month, year)
+    
+    expenses = db.query(models.Expense).filter(
+        models.Expense.owner_id == user_id,
+        models.Expense.created_at >= date_range["start"],
+        models.Expense.created_at < date_range["end"]
+    ).order_by(models.Expense.created_at.asc()).all()
+    
+    total_spent = sum(float(e.amount) for e in expenses)
+    transaction_count = len(expenses)
+    
+    budget = db.query(models.Budget).filter(
+        models.Budget.user_id == user_id,
+        models.Budget.month == month,
+        models.Budget.year == year
+    ).first()
+    budget_amt = float(budget.amount) if budget else 0
+    remaining = budget_amt - total_spent
+    
+    category_breakdown = {}
+    for e in expenses:
+        category_breakdown[e.category] = category_breakdown.get(e.category, 0) + float(e.amount)
+        
+    top_expenses = sorted(expenses, key=lambda x: x.amount, reverse=True)[:5]
+    top_expenses_data = [{"title": e.title, "amount": float(e.amount), "category": e.category, "date": str(e.created_at.date())} for e in top_expenses]
+    
+    daily_timeline = {}
+    for e in expenses:
+        day_str = str(e.created_at.date())
+        cat = e.category if e.category else "Uncategorized"
+        
+        if day_str not in daily_timeline:
+            daily_timeline[day_str] = {"daily_total": 0, "categories": {}}
+            
+        daily_timeline[day_str]["daily_total"] += float(e.amount)
+        
+        if cat not in daily_timeline[day_str]["categories"]:
+            daily_timeline[day_str]["categories"][cat] = {
+                "total": 0,
+                "count": 0,
+                "items": []
+            }
+            
+        daily_timeline[day_str]["categories"][cat]["total"] += float(e.amount)
+        daily_timeline[day_str]["categories"][cat]["count"] += 1
+        
+        if daily_timeline[day_str]["categories"][cat]["count"] <= 5:
+            daily_timeline[day_str]["categories"][cat]["items"].append(f"{e.title} - ₹{float(e.amount)}")
+
+        
+    return {
+        "month": month,
+        "year": year,
+        "total_expenses": total_spent,
+        "transaction_count": transaction_count,
+        "budget": budget_amt,
+        "remaining_budget": remaining,
+        "category_breakdown": category_breakdown,
+        "top_expenses": top_expenses_data,
+        "daily_timeline": daily_timeline
+    }

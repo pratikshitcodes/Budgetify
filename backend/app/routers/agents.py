@@ -1,3 +1,4 @@
+from datetime import datetime
 from groq import Groq
 import os
 import json
@@ -192,7 +193,9 @@ def get_tools_definition():
     ]
 
 def run_agent(question: str, history: list, db, current_user):
-    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+    current_date_str = datetime.now().strftime("%B %d, %Y")
+    formatted_prompt = SYSTEM_PROMPT.replace("{current_date}", current_date_str)
+    messages = [{"role": "system", "content": formatted_prompt}]
     
     # Add history
     for msg in history:
@@ -258,12 +261,9 @@ def run_agent(question: str, history: list, db, current_user):
                     
                 elif tool_name == "get_monthly_summary":
                     result = analytics_service.get_monthly_summary(db, current_user.id, args["month"], args["year"])
-                    
-                elif tool_name == "get_detailed_analysis":
-                    result = analytics_service.get_detailed_monthly_analysis(db, current_user.id, args["month"], args["year"])
 
-                elif tool_name == "check_affordability":
-                    result = analytics_service.check_affordability(db, current_user.id, args["amount"])
+                elif tool_name == "get_detailed_analysis":
+                    result = analytics_service.get_detailed_analysis(db, current_user.id, args["month"], args["year"])
 
                 elif tool_name == "compare_months":
                     result = analytics_service.compare_months(db, current_user.id, args["month1"], args["year1"], args["month2"], args["year2"])
@@ -311,7 +311,9 @@ def run_agent(question: str, history: list, db, current_user):
 def run_agent_stream(question: str, history: list, db, current_user):
     """Generator that runs the tool-calling loop non-streamed, then streams
     the final text response token by token as Server-Sent Events (SSE)."""
-    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+    current_date_str = datetime.now().strftime("%B %d, %Y")
+    formatted_prompt = SYSTEM_PROMPT.replace("{current_date}", current_date_str)
+    messages = [{"role": "system", "content": formatted_prompt}]
 
     for msg in history:
         messages.append({"role": msg.role, "content": msg.content})
@@ -399,6 +401,10 @@ def run_agent_stream(question: str, history: list, db, current_user):
                 elif tool_name == "get_monthly_summary":
                     result = analytics_service.get_monthly_summary(db, current_user.id, args["month"], args["year"])
 
+                elif tool_name == "get_detailed_analysis":
+                    result = analytics_service.get_detailed_analysis(db, current_user.id, args["month"], args["year"])
+
+
                 elif tool_name == "compare_months":
                     result = analytics_service.compare_months(db, current_user.id, args["month1"], args["year1"], args["month2"], args["year2"])
                     comparison_meta = result
@@ -439,3 +445,5 @@ def run_agent_stream(question: str, history: list, db, current_user):
     # Fallback if max steps exceeded
     yield f"data: {json.dumps({'type': 'token', 'content': "I'm sorry, I couldn't complete the task in time."})}\n\n"
     yield f"data: {json.dumps({'type': 'done'})}\n\n"
+
+

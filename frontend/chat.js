@@ -388,7 +388,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     },
 
                     body: JSON.stringify({
-                        message: text,
+                        message: `${text}\n\n(System Note: The user is currently viewing the dashboard for ${localStorage.getItem("selectedMonth")}/${localStorage.getItem("selectedYear")}. Assume they are asking about this timeframe unless specified otherwise.)`,
                         history: chatHistory
                     })
                 }

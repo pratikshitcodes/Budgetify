@@ -25,26 +25,21 @@ document.getElementById("greeting").textContent = `${greeting} 👋`
 
 const monthSelect = document.getElementById("monthSelector");
 const yearSelect = document.getElementById("yearSelector");
-const savedMonth = localStorage.getItem("selectedMonth");
-const savedYear = localStorage.getItem("selectedYear");
 
+// ALWAYS default to the current actual date on page load
 const today = new Date();
-
-const currentMonth = savedMonth
-    ? Number(savedMonth)
-    : today.getMonth() + 1;
-
-const currentYear = savedYear
-    ? Number(savedYear)
-    : today.getFullYear();
+const currentMonth = today.getMonth() + 1;
+const currentYear = today.getFullYear();
 
 monthSelect.value = currentMonth;
 yearSelect.value = currentYear;
 
 let selectedMonth = currentMonth;
 let selectedYear = currentYear;
-localStorage.setItem("selectedmonth",selectedMonth);
-localStorage.setItem("selectedYear",selectedYear);
+
+// We still save to localStorage in case other pages (like chat) need it
+localStorage.setItem("selectedMonth", selectedMonth);
+localStorage.setItem("selectedYear", selectedYear);
 
 document.getElementById("currentMonth").textContent =
     `${monthNames[selectedMonth-1]} ${selectedYear}`;

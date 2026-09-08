@@ -19,12 +19,12 @@ CurrentUser = Annotated[schemas.Token, Depends(oauth.get_current_user)]
 
 @router.get('/monthly/{year}/{month}')
 def get_monthly_report(year: int, month: int, db: DbSession, current_user: CurrentUser):
-    data = analytics_service.get_monthly_summary(db, current_user.id, month, year)
+    data = analytics_service.get_detailed_analysis(db, current_user.id, month, year)
     return {"type": "monthly", "data": data, "pdf_url": f"/reports/monthly/{year}/{month}/pdf", "csv_url": f"/reports/monthly/{year}/{month}/csv"}
 
 @router.get('/monthly/{year}/{month}/pdf')
 def get_monthly_pdf(year: int, month: int, db: DbSession, current_user: CurrentUser):
-    data = analytics_service.get_monthly_summary(db, current_user.id, month, year)
+    data = analytics_service.get_detailed_analysis(db, current_user.id, month, year)
     pdf_bytes = report_service.generate_pdf(data, is_comparison=False)
     return StreamingResponse(
         io.BytesIO(pdf_bytes),
@@ -34,7 +34,7 @@ def get_monthly_pdf(year: int, month: int, db: DbSession, current_user: CurrentU
 
 @router.get('/monthly/{year}/{month}/csv')
 def get_monthly_csv(year: int, month: int, db: DbSession, current_user: CurrentUser):
-    data = analytics_service.get_monthly_summary(db, current_user.id, month, year)
+    data = analytics_service.get_detailed_analysis(db, current_user.id, month, year)
     csv_str = report_service.generate_csv(data, is_comparison=False)
     return StreamingResponse(
         io.StringIO(csv_str),
