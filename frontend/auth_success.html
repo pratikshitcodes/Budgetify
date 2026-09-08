@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Authenticating...</title>
+    <style>
+        body {
+            background-color: #021a1f;
+            color: #00d2ff;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <h2 id="statusMessage">Securing your session...</h2>
+    <script>
+        async function exchangeCode() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+
+            if (!code) {
+                window.location.href = "./expense_login.html";
+                return;
+            }
+
+            // Remove code from URL immediately for security
+            window.history.replaceState({}, document.title, window.location.pathname);
+
+            try {
+                const response = await fetch("http://127.0.0.1:8000/auth/google/exchange", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ code: code })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    localStorage.setItem("access_token", data.access_token);
+                    localStorage.setItem("refresh_token", data.refresh_token);
+                    window.location.href = "./expense_tracker.html";
+                } else {
+                    document.getElementById("statusMessage").textContent = "Authentication failed. Redirecting...";
+                    setTimeout(() => window.location.href = "./expense_login.html", 2000);
+                }
+            } catch (err) {
+                document.getElementById("statusMessage").textContent = "Network error. Redirecting...";
+                setTimeout(() => window.location.href = "./expense_login.html", 2000);
+            }
+        }
+
+        exchangeCode();
+    </script>
+</body>
+</html>

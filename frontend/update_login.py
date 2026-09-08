@@ -1,24 +1,33 @@
-import re
+with open('expense_login.html', 'r', encoding='utf-8') as f:
+    content = f.read()
 
-with open('expense_login.css', 'r', encoding='utf-8') as f:
-    css = f.read()
+google_btn = '''
+        <a href="http://127.0.0.1:8000/auth/google/login" class="google-btn">
+          <svg viewBox="0 0 48 48">
+            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
+            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
+            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
+            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+            <path fill="none" d="M0 0h48v48H0z"></path>
+          </svg>
+          Continue with Google
+        </a>
 
-css = css.replace('background: #f5f7fb;', 'background: #0f172a;')
-css = re.sub(r'background:linear-gradient\(135deg,[\s\S]*?#5DA9E9\);', 'background:linear-gradient(135deg, #091c29, #004d61);', css)
+        <div class="divider">
+          <span>OR</span>
+        </div>
 
-css = css.replace('background: rgba(255,255,255,0.88);', 'background: rgba(21, 32, 43, 0.88);')
-css = css.replace('border: 1px solid rgba(255,255,255,0.45);', 'border: 1px solid rgba(6, 182, 212, 0.3);')
-css = css.replace('box-shadow: 0 24px 70px rgba(44, 21, 85, 0.28);', 'box-shadow: 0 24px 70px rgba(6, 182, 212, 0.15);')
+        <form id="loginForm"'''
 
-css = css.replace('color: #2b2b2b;', 'color: #e0f2fe;')
-css = css.replace('color: #6b7280;', 'color: #94a3b8;')
-css = css.replace('color: #4b5563;', 'color: #94a3b8;')
+content = content.replace('<form id="loginForm"', google_btn)
 
-css = re.sub(r'input\[type="text"\],\s*input\[type="password"\]\{[\s\S]*?\}', 
-    'input[type="text"],\ninput[type="password"]{\n  width: 100%;\n  box-sizing: border-box;\n  padding: 12px 12px;\n  font-size: 14px;\n  border-radius: 14px;\n  border: 1px solid #334155;\n  outline: none;\n  background: rgba(15, 23, 42, 0.6);\n  color: #e0f2fe;\n  box-shadow: 0 2px 8px rgba(0,0,0,0.2);\n}', css)
+auth_link = '''<div id="loginError" class="login-error" aria-live="polite" style="display:none"></div>
+        </form>
+        
+        <div class="auth-link">Don't have an account? <a href="./register.html">Register</a></div>'''
 
-css = css.replace('border-color: rgb(0, 140, 255);', 'border-color: #06b6d4; box-shadow: 0 0 8px rgba(6, 182, 212, 0.3);')
-css = css.replace('background: linear-gradient(180deg, rgb(0, 183, 255) 0%, rgb(0, 89, 255));', 'background: linear-gradient(180deg, #06b6d4 0%, #0891b2);')
+content = content.replace('<div id="loginError" class="login-error" aria-live="polite" style="display:none"></div>\n        </form>', auth_link)
+content = content.replace('<div id="loginError" class="login-error" aria-live="polite" style="display:none"></div>\r\n        </form>', auth_link)
 
-with open('expense_login.css', 'w', encoding='utf-8') as f:
-    f.write(css)
+with open('expense_login.html', 'w', encoding='utf-8') as f:
+    f.write(content)

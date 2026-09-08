@@ -7,7 +7,9 @@ class User(Base):
     __tablename__="users"
     id=Column(Integer,primary_key=True,index=True)
     email=Column(String,unique=True,nullable=False,index=True)
-    password=Column(String,nullable=False)
+    password=Column(String,nullable=True)
+    auth_provider=Column(String,nullable=False,server_default='email')
+    google_id=Column(String,unique=True,nullable=True,index=True)
 
 class Expense(Base):
     __tablename__="expenses"
@@ -59,3 +61,10 @@ class GroupExpenseSplit(Base):
     expense_id=Column(Integer,ForeignKey("group_expenses.id",ondelete="CASCADE"),nullable=False)
     member_id=Column(Integer,ForeignKey("group_members.id"),nullable=False)
     share_amount=Column(Numeric(10,2),nullable=False)
+
+class OAuthAuthCode(Base):
+    __tablename__="oauth_auth_codes"
+    code=Column(String,primary_key=True,index=True)
+    user_id=Column(Integer,ForeignKey("users.id",ondelete="CASCADE"),nullable=False)
+    expires_at=Column(TIMESTAMP(timezone=True),nullable=False)
+    used=Column(Integer, default=0)
